@@ -16,6 +16,8 @@ interface IServiceProviderRepository {
     getDomains():Promise<Category[] | null>
     getScheduledBookings(serviceProviderId: string, page: number, limit: number): Promise<{bookings: ScheduledBooking[], total: number} >
     getPaymentDashboard(serviceProviderId: string): Promise<any>
+    getScheduledBookingByRoomId(roomId: string): Promise<ScheduledBooking | null>
+    updateSlot(slotId: string, slotData: any): Promise<any>;
 
 
 

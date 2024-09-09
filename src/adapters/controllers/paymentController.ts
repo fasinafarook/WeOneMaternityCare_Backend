@@ -11,7 +11,7 @@ class PaymentController {
 
   async makePayment(req: Request, res: Response, next: NextFunction) {
     try {
-      const {data, previousUrl} = req.body;
+      const { data, previousUrl } = req.body;
       const userId = req.userId?.toString();
       const { serviceProviderId, slots } = data;
       const { schedule, date } = slots;
@@ -30,8 +30,6 @@ class PaymentController {
         title,
         description,
         roomId,
-        
-        
       };
 
       const response = await this.paymentCase.makePayment(info, previousUrl);
@@ -76,7 +74,6 @@ class PaymentController {
           const userId = invoice.metadata.userId;
 
           console.log("user id in switch : ", userId);
-          
         } else {
           console.warn("Invoice metadata or userId is missing");
         }
@@ -88,50 +85,65 @@ class PaymentController {
 
     res.json({ received: true });
   }
-  async cancelBooking(req: Request, res: Response, next: NextFunction): Promise<void> {
+  async cancelBooking(
+    req: Request,
+    res: Response,
+    next: NextFunction
+  ): Promise<void> {
     try {
       const { id } = req.params;
       const { cancellationReason } = req.body;
-  
+
       if (!cancellationReason) {
-        res.status(400).json({ message: 'Cancellation reason is required.' });
+        res.status(400).json({ message: "Cancellation reason is required." });
         return; // Ensure method exits after response is sent
       }
-  
+
       // Call the use case to handle the cancellation logic
-      const result = await this.paymentCase.cancelBooking(id, cancellationReason);
-  
+      const result = await this.paymentCase.cancelBooking(
+        id,
+        cancellationReason
+      );
+
       if (result.success) {
-        res.status(200).json({ message: 'Booking cancelled successfully.' });
+        res.status(200).json({ message: "Booking cancelled successfully." });
       } else {
-        res.status(404).json({ message: 'Booking not found.' });
+        res.status(404).json({ message: "Booking not found." });
       }
     } catch (error) {
       console.error(error);
-      res.status(500).json({ message: 'An error occurred while cancelling the booking.' });
+      res
+        .status(500)
+        .json({ message: "An error occurred while cancelling the booking." });
+    }
+  }
+
+  async processRefund(
+    req: Request,
+    res: Response,
+    next: NextFunction
+  ): Promise<void> {
+    try {
+      const { id } = req.params;
+      const { amount } = req.body;
+      console.log("Processing refund with:", { id, amount });
+
+      if (!id) {
+        res.status(400).json({ message: "Payment Intent ID is required." });
+        return;
+      }
+
+      const result = await this.paymentCase.processRefund(id, amount);
+      res
+        .status(200)
+        .json({ success: true, message: "Refund processed successfully." });
+    } catch (error) {
+      next(error);
     }
   }
 
 
-  async processRefund(req: Request, res: Response, next: NextFunction): Promise<void> {
-    try {
-        const { id } = req.params;
-        const { amount } = req.body;
-        console.log('Processing refund with:', { id, amount });
-
-        if (!id) {
-            res.status(400).json({ message: 'Payment Intent ID is required.' });
-            return;
-        }
-
-        const result = await this.paymentCase.processRefund(id, amount);
-        res.status(200).json({ success: true, message: "Refund processed successfully." });
-    } catch (error) {
-        next(error);
-    }
-}
   
- 
 }
 
 export default PaymentController;
