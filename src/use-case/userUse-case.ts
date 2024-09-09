@@ -1,4 +1,3 @@
-
 import { NextFunction } from "express";
 
 import User from "../domain/entities/user";
@@ -11,13 +10,14 @@ import AppError from "../infrastructure/utils/appError";
 import ServiceProvider from "../domain/entities/serviceProvider";
 import { IWebinar } from "../domain/entities/webinars";
 import IWalletRepository from "../interfaces/repositories/IWalletRepository";
+import { IComplaint } from "../domain/entities/complaint";
 
 type DecodedToken = {
   info: { userId: string };
   otp: string;
   iat: number;
   exp: number;
-}
+};
 
 class UserUseCase {
   constructor(
@@ -27,14 +27,10 @@ class UserUseCase {
     private mailService: IMailService,
     private hashPassword: IHashPassword,
     private iWalletRepository: IWalletRepository
-
   ) {}
 
-  
   async findUser(userInfo: User) {
-    const userFound = await this.iUserRepository.findByEmail(
-      userInfo.email
-    );
+    const userFound = await this.iUserRepository.findByEmail(userInfo.email);
     if (userFound) {
       return {
         status: 200,
@@ -42,7 +38,7 @@ class UserUseCase {
         message: "user found",
       };
     } else {
-      console.log(userInfo.email)
+      console.log(userInfo.email);
       const otp: string = this.otpGenerate.generateOtp();
       console.log("OTP: ", otp);
       const token = this.jwtToken.otpToken(userInfo, otp);
@@ -75,19 +71,17 @@ class UserUseCase {
     const hashedPassword = await this.hashPassword.hash(password);
     decodedToken.info.password = hashedPassword;
 
-    const userSave = await this.iUserRepository.saveUser(
-      decodedToken.info
-    );
+    const userSave = await this.iUserRepository.saveUser(decodedToken.info);
 
     if (!userSave) {
       throw new AppError("Failed to save user", 500);
     }
-    const newWallet = await this.iWalletRepository.createWallet(userSave._id as string, 'user');
-
-    let newToken = this.jwtToken.createJwtToken(
+    const newWallet = await this.iWalletRepository.createWallet(
       userSave._id as string,
       "user"
     );
+
+    let newToken = this.jwtToken.createJwtToken(userSave._id as string, "user");
     return { success: true, token: newToken };
   }
 
@@ -121,71 +115,82 @@ class UserUseCase {
 
   async getProfileDetails(userId: string) {
     const user = await this.iUserRepository.findUserById(userId);
-    return user
+    return user;
   }
-
+  async getAllCategories() {
+    return await this.iUserRepository.getAllCategories();
+  }
   async editProfile(userId: string, name: string, mobile: number) {
-    
-    await this.iUserRepository.editProfile(userId, name, mobile)
+    await this.iUserRepository.editProfile(userId, name, mobile);
   }
 
-  async editPassword(userId: string, oldPassword: string,  newPassword: string) {
-    
+  async editPassword(userId: string, oldPassword: string, newPassword: string) {
     const user = await this.iUserRepository.findUserById(userId);
-    if(!user) throw new AppError("User not found ", 400)
-    const isPasswordMatch = await this.hashPassword.compare(oldPassword, user?.password)
-    if(!isPasswordMatch) throw new AppError("Current password is incorrect. Please check and try again.", 400)
-    
-    const hashedPassword = await this.hashPassword.hash(newPassword)
-    await this.iUserRepository.updatePassword(userId, hashedPassword)
+    if (!user) throw new AppError("User not found ", 400);
+    const isPasswordMatch = await this.hashPassword.compare(
+      oldPassword,
+      user?.password
+    );
+    if (!isPasswordMatch)
+      throw new AppError(
+        "Current password is incorrect. Please check and try again.",
+        400
+      );
+
+    const hashedPassword = await this.hashPassword.hash(newPassword);
+    await this.iUserRepository.updatePassword(userId, hashedPassword);
   }
 
   async getApprovedAndUnblockedProviders(): Promise<ServiceProvider[]> {
     return this.iUserRepository.getApprovedAndUnblockedProviders();
-}
-
-async ServiceProviderDetails(id: string) {
-  const serviceProviderDetails =
-    await this.iUserRepository.getServiceProviderDetails(id);
-  return serviceProviderDetails;
-}
-
-
-
-
-getProviderSlotDetails(serviceProviderId: string) {
-  const details = this.iUserRepository.getProviderSlotDetails(
-    serviceProviderId,
-  );
-  return details;
-}
-
-
-async getScheduledBookingList(userId: string, page: number, limit: number) {
-  try {
-    const {bookings, total} =
-      await this.iUserRepository.getScheduledBookings(userId, page, limit);
-    return {bookings, total};
-  } catch (error) {
-    throw new AppError("Failed to fetch scheduled bookings", 500);
   }
-}
 
-async getListedWebinars(): Promise<IWebinar[]> {
-  return this.iUserRepository.getListedWebinars();
-}
+  async ServiceProviderDetails(id: string) {
+    const serviceProviderDetails =
+      await this.iUserRepository.getServiceProviderDetails(id);
+    return serviceProviderDetails;
+  }
 
-async getListedBlogs(page: number, limit: number) {
-  return this.iUserRepository.getListedBlogs(page, limit);
-}
+  getProviderSlotDetails(serviceProviderId: string) {
+    const details =
+      this.iUserRepository.getProviderSlotDetails(serviceProviderId);
+    return details;
+  }
 
-async getWallet(userId: string) {
+  async getScheduledBookingList(userId: string, page: number, limit: number) {
+    try {
+      const { bookings, total } =
+        await this.iUserRepository.getScheduledBookings(userId, page, limit);
+      return { bookings, total };
+    } catch (error) {
+      throw new AppError("Failed to fetch scheduled bookings", 500);
+    }
+  }
 
-  const details = await this.iUserRepository.getWallet(userId)
-  return details
-}
+  async getListedWebinars(): Promise<IWebinar[]> {
+    return this.iUserRepository.getListedWebinars();
+  }
 
+  async getListedBlogs(page: number, limit: number) {
+    return this.iUserRepository.getListedBlogs(page, limit);
+  }
+
+  async getWallet(userId: string) {
+    const details = await this.iUserRepository.getWallet(userId);
+    return details;
+  }
+
+ 
+  async fileComplaint(complaint: IComplaint): Promise<IComplaint> {
+    return this.iUserRepository.createComplaint(complaint);
+  }
+
+  async getUserComplaints(userId: string): Promise<IComplaint[]> {
+    return this.iUserRepository.getComplaintsByUser(userId);
+  }
+
+ 
+  
 }
 
 export default UserUseCase;
-

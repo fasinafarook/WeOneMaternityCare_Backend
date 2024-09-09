@@ -1,12 +1,11 @@
 export interface IBlog {
-    blogId: string;
-    title: string;
-    content: string;
-    image?: string;
-    date: Date;
-    isListed: boolean; // To manage unlisted blogs
-  }
-
+  blogId: string;
+  title: string;
+  content: string;
+  image?: string;
+  date: Date;
+  isListed: boolean; // To manage unlisted blogs
+}
 
 // export interface IWebinar {
 //     webinarId: string;
@@ -17,4 +16,3 @@ export interface IBlog {
 //     createdAt: Date;
 //     isListed: boolean; // To manage unlisted webinars
 //   }
-  

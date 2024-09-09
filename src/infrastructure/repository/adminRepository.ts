@@ -17,26 +17,29 @@ import { CategoryModel } from "../database/categoryModel";
 import { IBlog } from "../../domain/entities/blog";
 import { BlogModel } from "../database/blogModel";
 
-
 import WebinarModel from "../database/webinarModel";
 import { IWebinar } from "../../domain/entities/webinars";
 import webinarModel from "../database/webinarModel";
 
+
+import { Complaint } from "../database/complaints";
+
 class AdminRepository implements IAdminRepository {
-    async findByEmail(email: string): Promise<Admin | null> {
-      const adminExists = await adminModel.findOne({ email });
-      if (!adminExists) {
-        throw new AppError("Admin not found", 404);
-      }
-      return adminExists;
+  async findByEmail(email: string): Promise<Admin | null> {
+    const adminExists = await adminModel.findOne({ email });
+    if (!adminExists) {
+      throw new AppError("Admin not found", 404);
     }
-  
-    
+    return adminExists;
+  }
+
   async findAllUsers(
     page: number,
     limit: number
   ): Promise<{ users: IUser[]; total: number }> {
-    const usersList = await users.find()
+    const usersList = await users
+      .find()
+      .sort({ createdAt: -1 })
       .skip((page - 1) * limit)
       .limit(limit);
     const total = await users.find().countDocuments();
@@ -62,7 +65,9 @@ class AdminRepository implements IAdminRepository {
     page: number,
     limit: number
   ): Promise<{ serviceProviders: ServiceProvider[]; total: number }> {
-    const serviceProvidersList = await serviceProviderModel.find()
+    const serviceProvidersList = await serviceProviderModel
+      .find()
+      .sort({ createdAt: -1 })
       .skip((page - 1) * limit)
       .limit(limit);
     const total = await serviceProviderModel.find().countDocuments();
@@ -72,9 +77,7 @@ class AdminRepository implements IAdminRepository {
     return { serviceProviders: serviceProvidersList, total };
   }
 
-  async getServiceProviderDetails(
-    id: string
-  ): Promise<ServiceProvider | null> {
+  async getServiceProviderDetails(id: string): Promise<ServiceProvider | null> {
     const serviceProvidersDetails = await serviceProviderModel.findById(id);
     if (!serviceProvidersDetails) {
       throw new AppError("ServiceProviders not found", 404);
@@ -120,13 +123,15 @@ class AdminRepository implements IAdminRepository {
     return categoryUnlist;
   }
 
-
-  async addCategory(categoryName: string, subCategories: string[]): Promise<boolean> {
+  async addCategory(
+    categoryName: string,
+    subCategories: string[]
+  ): Promise<boolean> {
     const newCategory = new CategoryModel({
       categoryName: categoryName,
       subCategories: subCategories,
     });
-    const savedCategory= await newCategory.save();
+    const savedCategory = await newCategory.save();
     if (!savedCategory) {
       throw new AppError("Failed to add category in the database", 500);
     }
@@ -138,6 +143,7 @@ class AdminRepository implements IAdminRepository {
     limit: number
   ): Promise<{ categorys: Category[]; total: number }> {
     const categoryList = await CategoryModel.find()
+      .sort({ createdAt: -1 })
       .skip((page - 1) * limit)
       .limit(limit);
     const total = await CategoryModel.find().countDocuments();
@@ -148,24 +154,29 @@ class AdminRepository implements IAdminRepository {
   }
 
   async addBlog(blogData: Partial<IBlog>): Promise<IBlog> {
+ 
     const blog = new BlogModel(blogData);
-    console.log('blog',blog);
-    
+    console.log("blog", blog);
+
     await blog.save();
     return blog;
   }
 
-  async listBlogs(page: number, limit: number): Promise<{ blogs: IBlog[], total: number }> {
-    const blogs = await BlogModel.find({ })
+  async listBlogs(
+    page: number,
+    limit: number
+  ): Promise<{ blogs: IBlog[]; total: number }> {
+    const blogs = await BlogModel.find({})
+      .sort({ createdAt: -1 })
       .skip((page - 1) * limit)
       .limit(limit);
-    const total = await BlogModel.countDocuments({  });
+    const total = await BlogModel.countDocuments({});
     return { blogs, total };
   }
 
   // async unlistBlog(blogId: string): Promise<IBlog | null> {
   //   const blog = await BlogModel.findById(blogId);
-      
+
   //   if (!blog) throw new AppError("blog not found", 404);
   //   const unlistBlog = await BlogModel.findByIdAndUpdate(
   //     blogId,
@@ -180,45 +191,44 @@ class AdminRepository implements IAdminRepository {
 
   async unlistBlog(blogId: string) {
     if (!blogId) {
-      throw new Error('Blog ID is required');
+      throw new Error("Blog ID is required");
     }
-  
+
     const blog = await BlogModel.findById(blogId);
     if (!blog) {
-      throw new Error('Blog not found');
+      throw new Error("Blog not found");
     }
-  
+
     blog.isListed = false; // Example logic for unlisting
     return await blog.save();
   }
 
-
   async updateBlogStatus(blogId: string, isListed: boolean): Promise<IBlog> {
     try {
-        const updatedBlog = await BlogModel.findByIdAndUpdate(
-            blogId,
-            { isListed },
-            { new: true }
-        ).exec();
-        if (!updatedBlog) {
-            throw new Error('Blog not found');
-        }
-        return updatedBlog;
+      const updatedBlog = await BlogModel.findByIdAndUpdate(
+        blogId,
+        { isListed },
+        { new: true }
+      ).exec();
+      if (!updatedBlog) {
+        throw new Error("Blog not found");
+      }
+      return updatedBlog;
     } catch (error) {
-        throw new Error(`Error updating blog status: `);
+      throw new Error(`Error updating blog status: `);
     }
-}
+  }
 
   async addWebinar(webinar: IWebinar): Promise<IWebinar> {
     const newWebinar = new WebinarModel(webinar);
-    console.log('hii:', newWebinar);
-    
+    console.log("hii:", newWebinar);
+
     return await newWebinar.save();
   }
 
-  
   async listWebinars(): Promise<IWebinar[]> {
-    return await WebinarModel.find({ });
+    return await WebinarModel.find({})
+    .sort({ createdAt: -1 });
   }
 
   async unlistWebinar(webinarId: string): Promise<IWebinar | null> {
@@ -229,7 +239,6 @@ class AdminRepository implements IAdminRepository {
     );
   }
 
-
   async toggleWebinarListing(webinarId: string): Promise<IWebinar | null> {
     const webinar = await WebinarModel.findOne({ webinarId });
     if (!webinar) return null;
@@ -237,9 +246,29 @@ class AdminRepository implements IAdminRepository {
     webinar.isListed = !webinar.isListed;
     await webinar.save();
     return webinar;
-}
+  }
+  async getAllComplaints(): Promise<any[]> {
+    return await Complaint.find(); // Fetch all complaints from the database
+  }
 
-  
+  async respondToComplaint(id: string, responseMessage: string): Promise<boolean> {
+    try {
+      const complaint = await Complaint.findById(id);
+
+      if (!complaint) {
+        return false;
+      }
+
+      complaint.response = responseMessage;
+      complaint.isResolved = true;
+      await complaint.save();
+
+      return true;
+    } catch (error) {
+      console.error('Error responding to complaint:', error);
+      return false;
+    }
+  }
 
 }
 

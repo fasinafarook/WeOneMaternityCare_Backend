@@ -1,4 +1,3 @@
-
 import IGenerateOtp from "../../interfaces/utils/IGenerateOtp";
 
 class OtpGenerate implements IGenerateOtp {
@@ -19,4 +18,4 @@ class OtpGenerate implements IGenerateOtp {
   }
 }
 
-export default OtpGenerate
+export default OtpGenerate;

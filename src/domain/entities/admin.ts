@@ -1,10 +1,8 @@
-interface Admin { 
-    _id?: string,
-    name: string,
-    email: string,
-    password: string
+interface Admin {
+  _id?: string;
+  name: string;
+  email: string;
+  password: string;
 }
 
-
-
-export default Admin
+export default Admin;

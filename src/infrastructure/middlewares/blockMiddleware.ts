@@ -2,7 +2,6 @@
 // import UserRepository from '../repository/userRepository';
 // import ServiceProviderRepository from '../repository/serviceProviderRepository';
 
-
 // // Extend the Request interface to include the 'user' and 'provider' properties
 // interface CustomRequest extends Request {
 //     user?: any;  // Replace 'any' with the actual User type
@@ -18,7 +17,7 @@
 //         // Assuming `req.user` is being set somewhere in your authentication middleware
 //         if (req.user) {
 //             console.log('idss:',req.user);
-            
+
 //             const user = await userRepository.findUserById(req.user.id);
 //             if (user && user.isBlocked) {
 //                 return res.status(403).json({ message: 'User is blocked' });

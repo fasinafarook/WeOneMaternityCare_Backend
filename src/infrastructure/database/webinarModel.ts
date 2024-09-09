@@ -16,9 +16,8 @@
 
 // export default WebinarModel;
 
-
-import mongoose, { Schema, Document } from 'mongoose';
-import { IWebinar } from '../../domain/entities/webinars';
+import mongoose, { Schema, Document } from "mongoose";
+import { IWebinar } from "../../domain/entities/webinars";
 
 interface IWebinarDocument extends IWebinar, Document {}
 
@@ -32,4 +31,4 @@ const WebinarSchema: Schema = new Schema({
   isListed: { type: Boolean, default: true },
 });
 
-export default mongoose.model<IWebinarDocument>('Webinar', WebinarSchema);
+export default mongoose.model<IWebinarDocument>("Webinar", WebinarSchema);
