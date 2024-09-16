@@ -103,8 +103,11 @@ serviceProvider.get(
 
 
 
-  serviceProvider.put('/edit-slot/:id', serviceProviderAuth,
+  serviceProvider.put('/edit-slot/:slotId', serviceProviderAuth,
     (req, res, next) => controller.editSlotController(req, res, next));
+
+    serviceProvider.put('/update-booking-status/:bookingId',serviceProviderAuth,
+    (req, res, next) => controller.updateBookingStatus(req, res, next));
  
 
 export default serviceProvider;

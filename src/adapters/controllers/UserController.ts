@@ -3,7 +3,8 @@ import AppError from "../../infrastructure/utils/appError";
 import UserUseCase from "../../use-case/userUse-case";
 import { Request, Response, NextFunction } from "express";
 import fs from "fs";
-
+import users from "../../infrastructure/database/userModel";
+import { ScheduledBookingModel } from "../../infrastructure/database/scheduledBookingsModel";
 class UserController {
   constructor(private userCase: UserUseCase) {}
 
@@ -365,6 +366,55 @@ async fileComplaint(req: Request, res: Response): Promise<void> {
     }
   }
 
+  async  getUsersForSidebar(req: Request, res: Response): Promise<void> {
+    try {
+      const loggedInUserId = req.userId;
+  
+      // Find users with at least one completed booking, excluding the logged-in user
+      const completedBookingUsers = await ScheduledBookingModel.find({
+        status: "Completed",
+        userId: { $ne: loggedInUserId },
+      }).distinct("userId"); // Get distinct userIds who have completed bookings
+  
+      // Fetch user details, excluding password, and only for users with completed bookings
+      const filteredUsers = await users
+        .find({ _id: { $in: completedBookingUsers } })
+        .select("-password");
+  
+      res.status(200).json(filteredUsers);
+    } catch (error: any) {
+      console.error("Error in getUsersForSidebar:", error.message);
+      res.status(500).json({ error: "Internal server error" });
+    }
+  }
+  
+
+
+ async getCompletedBookings (req: Request, res: Response)  {
+    const userId = req.params.userId; // Assuming userId is passed as a param
+    console.log('idhead:',userId);
+    
+  
+    try {
+      const completedBookings = await ScheduledBookingModel.find({
+        userId: userId,
+        status: "Completed",
+      });
+  console.log('cm',completedBookings);
+  
+      if (!completedBookings.length) {
+        return res.status(404).json({ success: false, message: "No completed bookings found" });
+      }
+  
+      return res.status(200).json({
+        success: true,
+        data: completedBookings,
+      });
+    } catch (error) {
+      console.error("Error fetching completed bookings:", error);
+      return res.status(500).json({ success: false, message: "Server error" });
+    }
+  }
 }
 
 export default UserController;

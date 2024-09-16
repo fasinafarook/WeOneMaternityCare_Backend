@@ -1,38 +1,37 @@
 import { Server } from 'socket.io';
-console.log('socket');
+import http from 'http';
+import express from 'express';
 
-function socketServer(server: any) {
-    const io = new Server(server, {
-        cors: {
-            origin: ["http://localhost:5173"], // Adjust as needed
-            methods: ["GET", "POST"],
-        },
-    });
+const apps = express();
+const server = http.createServer(apps);
+const io = new Server(server, {
+  cors: {
+    origin: ["http://localhost:5173"],
+    methods: ["GET", "POST"],
+  },
+});
 
-    io.on('connection', (socket) => {
-        console.log('New client connected:', socket.id);
-
-        socket.on('join-room', (roomId) => {
-            socket.join(roomId);
-            console.log(`Client ${socket.id} joined room ${roomId}`);
-        });
-
-        socket.on('offer', (data) => {
-            socket.to(data.roomId).emit('offer', data.offer);
-        });
-
-        socket.on('answer', (data) => {
-            socket.to(data.roomId).emit('answer', data.answer);
-        });
-
-        socket.on('ice-candidate', (data) => {
-            socket.to(data.roomId).emit('ice-candidate', data.candidate);
-        });
-
-        socket.on('disconnect', () => {
-            console.log('Client disconnected:', socket.id);
-        });
-    });
+export const getReceiverSocketId = (receiverId: string): string | undefined =>{
+return userSocketMap[receiverId]
 }
+const userSocketMap: Record<string, string> = {};
 
-export default socketServer;
+io.on('connection', (socket) => {
+  console.log("A user connected", socket.id);
+
+  const userId = socket.handshake.query.userId as string;
+
+  if (userId) {
+    userSocketMap[userId] = socket.id;
+  }
+
+  io.emit("getOnlineUsers", Object.keys(userSocketMap));
+
+  socket.on('disconnect', () => {
+    console.log("User disconnected", socket.id);
+    delete userSocketMap[userId];
+    io.emit("getOnlineUsers", Object.keys(userSocketMap));
+  });
+});
+
+export { apps, server ,io};

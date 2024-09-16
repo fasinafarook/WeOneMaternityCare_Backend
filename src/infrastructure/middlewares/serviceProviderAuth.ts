@@ -25,7 +25,7 @@ const serviceProviderAuth = async (
   next: NextFunction
 ) => {
   let token = req.cookies.serviceProviderToken;
-  console.log("gdfhhhh", token);
+  // console.log("gdfhhhh", token);
 
   if (!token) {
     return res
@@ -42,19 +42,19 @@ const serviceProviderAuth = async (
     }
 
     if (decodedToken && decodedToken.id) {
-      console.log("tokenn", decodedToken, decodedToken.id);
+      // console.log("tokenn", decodedToken, decodedToken.id);
 
       const serviceProvider =
         await serviceProviderRepository.findServiceProviderById(
           decodedToken.id
         );
-      console.log("tokennjkhdk", serviceProvider);
+      // console.log("tokennjkhdk", serviceProvider);
 
       if (serviceProvider?.isBlocked) {
         console.log("isBlocked:", serviceProvider?.isBlocked);
 
         return res
-          .status(401)
+          .status(403)
           .send({ success: false, message: "You are blocked!" });
       }
       req.serviceProviderId = serviceProvider?._id;

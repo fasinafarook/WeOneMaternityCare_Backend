@@ -253,7 +253,7 @@ class AdminRepository implements IAdminRepository {
 
   async respondToComplaint(id: string, responseMessage: string): Promise<boolean> {
     try {
-      const complaint = await Complaint.findById(id);
+      const complaint = await Complaint.findById(id).sort({createdAt:-1});
 
       if (!complaint) {
         return false;

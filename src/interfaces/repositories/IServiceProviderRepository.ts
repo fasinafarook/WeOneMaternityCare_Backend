@@ -17,7 +17,9 @@ interface IServiceProviderRepository {
     getScheduledBookings(serviceProviderId: string, page: number, limit: number): Promise<{bookings: ScheduledBooking[], total: number} >
     getPaymentDashboard(serviceProviderId: string): Promise<any>
     getScheduledBookingByRoomId(roomId: string): Promise<ScheduledBooking | null>
-    updateSlot(slotId: string, slotData: any): Promise<any>;
+    // saveProviderSlots(providerSlot: ProviderSlot): Promise<void>;
+    // findProviderSlotBySlotId(slotId: string): Promise<ProviderSlot | null>;
+    updateStatus(bookingId: string, status: string): Promise<any>;
 
 
 

@@ -262,15 +262,48 @@ class ServiceProviderUseCase {
 
  
 
-  editSlotUseCase = async (slotId: string, slotData: any) => {
-   
-      const updatedSlot = await this.iServiceProviderRepository.updateSlot(slotId, slotData);
-      if (!updatedSlot) {
-        throw new Error('Slot not found or update failed');
-      }
-      return updatedSlot;
-    
-  };
+  // async execute(slotId: string, updatedSlotData: any) {
+  //   try {
+  //     const providerSlot = await this.iServiceProviderRepository.findProviderSlotBySlotId(slotId);
+
+  //     if (!providerSlot) {
+  //       return { status: 404, response: { message: 'Slot not found in any provider' } };
+  //     }
+
+  //     const slot = providerSlot.slots.find((s: any) => s._id.toString() === slotId);
+
+  //     if (!slot) {
+  //       return { status: 404, response: { message: 'Slot not found' } };
+  //     }
+
+  //     slot.schedule.forEach((schedule: any) => {
+  //       schedule.from = updatedSlotData.from || schedule.from;
+  //       schedule.to = updatedSlotData.to || schedule.to;
+  //       schedule.price = updatedSlotData.price || schedule.price;
+  //       schedule.services = updatedSlotData.services || schedule.services;
+  //       schedule.description = updatedSlotData.description || schedule.description;
+  //       schedule.status = updatedSlotData.status || schedule.status;
+  //     });
+
+  //     await this.iServiceProviderRepository.saveProviderSlots(providerSlot);
+
+  //     return { status: 200, response: { message: 'Slot updated successfully', updatedSlot: slot } };
+  //   } catch (error) {
+  //     throw new Error('Error updating slot');
+  //   }
+  // }
+
+  async updateBookingStatus(bookingId: string, status: string) {
+    console.log("Service Call:", bookingId, status);
+  
+    const validStatuses = ['Scheduled', 'Completed', 'Cancelled'];
+    if (!validStatuses.includes(status)) {
+      throw new Error('Invalid status');
+    }
+  
+    return await this.iServiceProviderRepository.updateStatus(bookingId, status);
+  }
+  
 }
 
 export default ServiceProviderUseCase;
