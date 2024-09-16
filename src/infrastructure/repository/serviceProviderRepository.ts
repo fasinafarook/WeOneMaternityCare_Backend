@@ -66,9 +66,11 @@ class ServiceProviderRepository implements IServiceProviderRepository {
     return categories.map((category) => category.categoryName);
   }
 
-  async saveProviderSlot(slotData: ProviderSlot): Promise<ProviderSlot | null> {
+  async saveProviderSlot(
+    slotData: ProviderSlot
+  ): Promise<ProviderSlot | null> {
     const { serviceProviderId, slots } = slotData;
-
+  
     const transformData = (
       data: any[],
       serviceProviderId: string
@@ -88,9 +90,9 @@ class ServiceProviderRepository implements IServiceProviderRepository {
       return { serviceProviderId, slots };
     };
     const transformedData = transformData(slots, serviceProviderId);
-
+  
     let providerSlot = await ProviderSlotModel.findOne({ serviceProviderId });
-
+  
     if (!providerSlot) {
       providerSlot = new ProviderSlotModel(transformedData);
     } else {
@@ -100,7 +102,7 @@ class ServiceProviderRepository implements IServiceProviderRepository {
             slot.date?.toISOString().split("T")[0] ===
             newSlot.date?.toISOString().split("T")[0]
         );
-
+  
         if (existingSlotIndex === -1) {
           providerSlot?.slots.push(newSlot);
         } else {
@@ -112,12 +114,14 @@ class ServiceProviderRepository implements IServiceProviderRepository {
                 s.from.toISOString() === newSchedule.from.toISOString() &&
                 s.to.toISOString() === newSchedule.to.toISOString()
             );
-
+  
             if (existingScheduleIndex === -1) {
-              providerSlot?.slots[existingSlotIndex].schedule.push(newSchedule);
+              providerSlot?.slots[existingSlotIndex].schedule.push(
+                newSchedule
+              );
             } else {
               throw new AppError("Time slot already taken", 400);
-
+  
               providerSlot!.slots[existingSlotIndex].schedule[
                 existingScheduleIndex!
               ] = newSchedule;
@@ -126,10 +130,11 @@ class ServiceProviderRepository implements IServiceProviderRepository {
         }
       });
     }
-
+  
     const savedSlot = await providerSlot.save();
     return savedSlot;
   }
+  
 
   async getProviderSlots(
     serviceProviderId: string,
@@ -137,7 +142,7 @@ class ServiceProviderRepository implements IServiceProviderRepository {
     limit: number,
     searchQuery: string
   ): Promise<{ slots: ProviderSlot[]; total: number }> {
-    console.log("search", searchQuery);
+    // console.log("search", searchQuery);
     const pipeline: any[] = [
       {
         $match: { serviceProviderId: serviceProviderId.toString() },
@@ -147,7 +152,7 @@ class ServiceProviderRepository implements IServiceProviderRepository {
       },
     ];
 
-    console.log(await ProviderSlotModel.aggregate(pipeline));
+    // console.log(await ProviderSlotModel.aggregate(pipeline));
 
     if (searchQuery) {
       pipeline.push({
@@ -167,7 +172,7 @@ class ServiceProviderRepository implements IServiceProviderRepository {
     pipeline.push(
       {
         $project: {
-          _id: 0,
+          _id: "$slots._id",
           date: "$slots.date",
           schedule: "$slots.schedule",
         },
@@ -211,7 +216,7 @@ class ServiceProviderRepository implements IServiceProviderRepository {
     })
       .skip((page - 1) * limit)
       .limit(limit)
-      .sort({ date: -1 });
+      .sort({ createdAt: -1 });
 
     const total = await ScheduledBookingModel.find({
       serviceProviderId,
@@ -273,10 +278,26 @@ class ServiceProviderRepository implements IServiceProviderRepository {
     return interview
   }
 
-  async updateSlot(slotId: string, slotData: any): Promise<any> {
-    const updatedSlot = await ProviderSlotModel.findByIdAndUpdate(slotId, slotData, { new: true });
-    return updatedSlot;
+  // async findProviderSlotBySlotId(slotId: string): Promise<ProviderSlot | null> {
+  //   return ProviderSlotModel.findOne({ "slots._id": slotId }).exec();
+  // }
+
+  // async saveProviderSlots(providerSlot: ProviderSlot): Promise<void> {
+  //   await providerSlot.save();
+  // }
+  
+  async updateStatus(bookingId: string, status: string) {
+    console.log("hi",bookingId,status);
+
+    return await ScheduledBookingModel.findByIdAndUpdate(
+      
+      bookingId,
+      { status },
+      { new: true } // Return the updated document
+    );
   }
+  
+  
 }
 
 export default ServiceProviderRepository;

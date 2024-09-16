@@ -5,6 +5,7 @@ import fs from "fs";
 import AppError from "../../infrastructure/utils/appError";
 import mongoose from "mongoose";
 import ProviderSlot from "../../domain/entities/providerSlot";
+import { ProviderSlotModel } from "../../infrastructure/database/providerSlotModel";
 
 interface Service {
   value: string;
@@ -232,25 +233,32 @@ class ServiceProviderController {
 
   async addProviderSlot(req: Request, res: Response, next: NextFunction) {
     try {
-      const { date, description, timeFrom, timeTo, title, price, services } =
-        req.body.slotData;
+      const {
+        date,
+        description,
+        timeFrom,
+        timeTo,
+        title,
+        price,
+        services,
+      } = req.body.slotData;
       const Srvc: string[] = (services as Service[]).map(
         (option: Service) => option.value
       );
       const serviceProviderId = req.serviceProviderId;
-
+  
       if (!serviceProviderId) {
         throw new AppError("Unauthorized user", 401);
       }
-
+  
       const slotData: ProviderSlot = {
         serviceProviderId,
         slots: [
           {
+            
             date: new Date(date),
             schedule: [
               {
-               
                 description,
                 from: timeFrom,
                 to: timeTo,
@@ -263,7 +271,7 @@ class ServiceProviderController {
           },
         ],
       };
-
+  
       const slotAdded = await this.serviceProviderCase.addSlot(slotData);
       return res.status(201).json({
         success: true,
@@ -274,7 +282,7 @@ class ServiceProviderController {
       next(error);
     }
   }
-
+  
   async getProviderSlots(req: Request, res: Response, next: NextFunction) {
     try {
       const page = req.query.page ? parseInt(req.query.page as string) : 1;
@@ -372,21 +380,82 @@ class ServiceProviderController {
     }
   }
 
+
+  async updateBookingStatus(req: Request, res: Response,next: NextFunction) {
+    try {
+      const { bookingId } = req.params;
+      const { status } = req.body;
+      console.log("Request:", bookingId, status);
+      const updatedBooking = await this.serviceProviderCase.updateBookingStatus(bookingId, status);
+      if (!updatedBooking) {
+        return res.status(404).json({ message: 'Booking not found' });
+      }
+      res.status(200).json(updatedBooking);
+    } catch (error) {
+      console.error('Error updating booking status:', error);
+      res.status(500).json({ message: 'Failed to update booking status', error });
+    }
+  }
   
 
-  async editSlotController(req: Request, res: Response ,next: NextFunction) {
-    console.log('ji',req.params);
-    
-    const { slotId } = req.params;
-    const slotData = req.body;
+  
+
+  async editSlotController(req: Request, res: Response, next: NextFunction) {
+    const { slotId } = req.params; // Slot ID passed from frontend
+    const updatedSlotData = req.body; // Updated data to apply to the slot
   
     try {
-      const updatedSlot = await this.serviceProviderCase.editSlotUseCase(slotId, slotData);
-      res.status(200).json({ success: true, data: updatedSlot, message: 'Slot updated successfully' });
+      // Find the provider's slot that contains the slotId
+      const providerSlot = await ProviderSlotModel.findOne({
+        "slots._id": slotId, // Query the slots array to find the matching slot ID
+      });
+  
+      if (!providerSlot) {
+        return res.status(404).json({ message: 'Slot not found in any provider' });
+      }
+  
+      // Find the index of the specific slot by its _id
+      const slotIndex = providerSlot.slots.findIndex((s: any) => s._id.toString() === slotId);
+  
+      if (slotIndex === -1) {
+        return res.status(404).json({ message: 'Slot not found' });
+      }
+  
+      // Update the slot's schedule (or other fields) with new data
+      const updatedSlot = providerSlot.slots[slotIndex];
+      updatedSlot.schedule.forEach((schedule: any) => {
+        schedule.from = updatedSlotData.from || schedule.from;
+        schedule.to = updatedSlotData.to || schedule.to;
+        schedule.price = updatedSlotData.price || schedule.price;
+        schedule.services = updatedSlotData.services || schedule.services;
+        schedule.description = updatedSlotData.description || schedule.description;
+        schedule.status = updatedSlotData.status || schedule.status;
+      });
+  
+      // Save the updated provider slot document
+      await providerSlot.save();
+  
+      return res.status(200).json({ message: "Slot updated successfully", updatedSlot });
     } catch (error) {
-      res.status(400).json({ success: false, message:'error' });
+      console.error('Error updating slot:', error);
+      return res.status(500).json({ message: "Error updating slot", error });
     }
-  };
+  }
+  
+
+  // async editSlotController(req: Request, res: Response, next: NextFunction) {
+  //   const { slotId } = req.params;
+  //   const updatedSlotData = req.body;
+
+  //   try {
+  //     const result = await this.serviceProviderCase.execute(slotId, updatedSlotData);
+  //     return res.status(result.status).json(result.response);
+  //   } catch (error) {
+  //     return res.status(500).json({ message: 'Error updating slot', error });
+  //   }
+  // }
+  
+
 
   
 }

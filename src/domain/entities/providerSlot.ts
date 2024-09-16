@@ -16,6 +16,7 @@ export interface Slot {
 }
 
 interface ProviderSlot {
+
   serviceProviderId: string;
   slots: Slot[];
 }

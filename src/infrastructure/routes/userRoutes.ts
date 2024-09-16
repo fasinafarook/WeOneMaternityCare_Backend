@@ -130,4 +130,10 @@ router.get('/complaints/:userId',userAuth, (req, res) => controller.getUserCompl
 
 
 
+router.get("/message",userAuth,controller.getUsersForSidebar)
+router.get("/completed/:userId",userAuth,controller.getCompletedBookings)
+
+
+
+
 export default router;
