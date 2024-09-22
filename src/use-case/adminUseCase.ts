@@ -240,6 +240,15 @@ class AdminUseCase {
     return this.iAdminRepository.respondToComplaint(id, responseMessage);
   }
   
-}
+  async getAdminBookingsUseCase(page: number, limit: number) {
+    const bookings = await this.iAdminRepository.getAllBookings(page, limit);
+    return bookings;
+  }
+  
+  async getDashboardDetails() {
+    const details = await this.iAdminRepository.dashboardDetails()
+    return details
+  }
 
+}
 export default AdminUseCase;

@@ -293,6 +293,44 @@ class ServiceProviderUseCase {
   //   }
   // }
 
+  async passwordReset(email: string) {
+    try {
+      const candidate = await this.iServiceProviderRepository.findByEmail(email);
+      if (!candidate) {
+        return null
+      }
+      const { name } = candidate;
+      const otp = this.otpGenerate.generateOtp();
+      const hashedOtp = await this.hashPassword.hash(otp)
+      console.log("FORGOT PASSWORD OTP: ", otp)
+      const token = this.jwtToken.otpToken({ userId: candidate._id }, hashedOtp);
+
+      await this.mailService.sendMail(name, email, otp);
+
+
+      return token;
+    } catch (error) {
+      throw new AppError("Failed to initiate password reset", 500);
+    }
+  }
+
+  async resetPassword(UserOtp: string, password: string, token: any) {
+    const decodedToken = this.jwtToken.verifyJwtToken(token) as DecodedToken
+    const {otp, info}  = decodedToken
+    const {userId} = info
+    
+    const isOtpValid = await this.hashPassword.compare(UserOtp, otp)
+    if(!isOtpValid){
+      throw new AppError("Incorrect OTP", 400)
+    }
+    const hashedPassword = await this.hashPassword.hash(password)
+
+    await this.iServiceProviderRepository.updatePassword(userId, hashedPassword) 
+
+    return 
+
+  }
+
   async updateBookingStatus(bookingId: string, status: string) {
     console.log("Service Call:", bookingId, status);
   
@@ -303,7 +341,30 @@ class ServiceProviderUseCase {
   
     return await this.iServiceProviderRepository.updateStatus(bookingId, status);
   }
+
+
+  async editProfile(serviceProviderId: string, details: ServiceProvider) {
+    await this.iServiceProviderRepository.editProfile(serviceProviderId, details)
+  }
+
+
+  async editPassword(serviceProviderId: string, oldPassword: string,  newPassword: string) {
+    
+    const serviceProvider = await this.iServiceProviderRepository.findServiceProviderById(serviceProviderId);
+    if(!serviceProvider) throw new AppError("Interviewer not found ", 400)
+    const isPasswordMatch = await this.hashPassword.compare(oldPassword, serviceProvider?.password)
+    if(!isPasswordMatch) throw new AppError("Current password is incorrect. Please check and try again.", 400)
+    
+    const hashedPassword = await this.hashPassword.hash(newPassword)
+    await this.iServiceProviderRepository.updatePassword(serviceProviderId, hashedPassword)
+  }
   
+
+   async getProviderDashboardData (providerId: string) {
+    // Get total bookings, scheduled, completed, canceled, refunded, and revenue
+    const dashboardData = await this.iServiceProviderRepository.getDashboardStats(providerId);
+    return dashboardData;
+  };
 }
 
 export default ServiceProviderUseCase;

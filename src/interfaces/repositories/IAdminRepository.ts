@@ -5,6 +5,7 @@ import Category from "../../domain/entities/category";
 import { IBlog } from "../../domain/entities/blog";
 import { IWebinar } from "../../domain/entities/webinars";
 import { IComplaint } from "../../domain/entities/complaint";
+import ScheduledBooking from "../../domain/entities/scheduledBookings";
 
 interface IAdminRepository {
   findByEmail(email: string): Promise<Admin | null>;
@@ -45,6 +46,8 @@ interface IAdminRepository {
   toggleWebinarListing(webinarId: string): Promise<IWebinar | null>;
   getAllComplaints(): Promise<any[]>;
   respondToComplaint(id: string, responseMessage: string): Promise<boolean>;
+  getAllBookings(page: number, limit: number): Promise<ScheduledBooking[]>;
+  dashboardDetails() : Promise<any>
 
 
 }

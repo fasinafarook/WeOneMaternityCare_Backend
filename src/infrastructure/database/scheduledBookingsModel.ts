@@ -1,5 +1,7 @@
 import mongoose, { Schema } from "mongoose";
 import ScheduledBooking from "../../domain/entities/scheduledBookings";
+import users from "./userModel";
+import { serviceProviderModel } from "./serviceProviderModel";
 
 const ScheduledBookingSchema = new Schema<ScheduledBooking>(
   {
@@ -29,10 +31,12 @@ const ScheduledBookingSchema = new Schema<ScheduledBooking>(
     },
     serviceProviderId: {
       type: String,
+      ref: 'serviceProvider',
       required: true,
     },
     userId: {
       type: String,
+      ref: 'user',
       required: true,
     },
     status: {

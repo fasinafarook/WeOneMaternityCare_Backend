@@ -415,6 +415,36 @@ async fileComplaint(req: Request, res: Response): Promise<void> {
       return res.status(500).json({ success: false, message: "Server error" });
     }
   }
+
+
+  async forgotPassword(req: Request, res: Response, next: NextFunction) {
+    try {
+      const {email} = req.body
+      console.log(email)
+      const token = await this.userCase.passwordReset(email)
+      if (!token) {
+        return res.status(404).json({ success: false, message: "User not found" });
+      }
+      return res.status(200).json({success: true, data: token})
+    } catch (error) {
+      next(error)
+    }
+  }
+
+  async resetPassword(req: Request, res: Response, next: NextFunction) {
+    try {
+      const token = req.headers.authorization?.split(' ')[1] as string;
+      if(!token) throw new AppError("Unauthorised user", 401);
+
+      const {otp, password} = req.body
+      await this.userCase.resetPassword(otp, password, token)
+      return res.status(201).json({success: true, message: "Password changed successfully"})
+      
+    } catch (error) {
+      next(error)
+    }
+  }
+
 }
 
 export default UserController;

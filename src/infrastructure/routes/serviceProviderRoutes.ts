@@ -108,6 +108,18 @@ serviceProvider.get(
 
     serviceProvider.put('/update-booking-status/:bookingId',serviceProviderAuth,
     (req, res, next) => controller.updateBookingStatus(req, res, next));
+
+
+    serviceProvider.post('/forgot-password', (req, res, next) => controller.forgotPassword(req, res, next))
+       
+
+    serviceProvider.post('/reset-password', (req, res, next) => controller.resetPassword(req, res, next))
+
+    serviceProvider.put('/edit-profile', serviceProviderAuth, (req, res, next) => controller.editProfile(req, res, next))
+
+    serviceProvider.put('/edit-password', serviceProviderAuth, (req, res, next) => controller.editPassword(req, res, next))
  
+    serviceProvider.get('/dashboard', serviceProviderAuth, (req, res, next) => controller.getProviderDashboard(req, res, next))
+
 
 export default serviceProvider;

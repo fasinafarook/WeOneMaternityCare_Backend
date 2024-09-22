@@ -105,4 +105,13 @@ adminRouter.get('/complaints', adminAuthenticate,
 adminRouter.put('/respond-to-complaint/:id',  adminAuthenticate,
   (req, res, next) => controller.respondToComplaint(req, res, next)
 );
+
+
+adminRouter.get("/bookings",  adminAuthenticate,
+  (req, res, next) => controller.getAdminBookingsController(req, res, next)
+);
+
+adminRouter.get('/dashboard', adminAuthenticate, (req, res, next) => controller.getDashboardDetails(req, res, next))
+
+
 export default adminRouter;
