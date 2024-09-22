@@ -1,65 +1,3 @@
-// import { NextFunction, Request, Response } from "express";
-// import AdminUseCase from "../../use-case/adminUseCase";
-
-// class AdminController {
-//   private adminCase: AdminUseCase;
-
-//   constructor(adminCase: AdminUseCase) {
-//     this.adminCase = adminCase;
-//   }
-
-//   async login(req: Request, res: Response, next: NextFunction) {
-//     try {
-//       const { email, password } = req.body;
-
-//       const admin = await this.adminCase.adminLogin(email, password);
-
-//       if (admin?.success) {
-//         const expiryDate = new Date(Date.now() + 24 * 60 * 60 * 1000);
-
-//         res.cookie("adminToken", admin.token, {
-//           expires: expiryDate,
-//           httpOnly: true,
-//           secure: true, // use true if you're serving over https
-//           sameSite: 'none' // allows cross-site cookie usage
-//         });
-//         return res.status(200).json(admin);
-//       }
-//       return res.status(404).json(admin);
-//     } catch (error) {
-//       next(error);
-//     }
-//   }
-
-//   async logout(req: Request, res: Response, next: NextFunction) {
-//     try {
-//       res.cookie("adminToken", "", {
-//         httpOnly: true,
-//         expires: new Date(0),
-//       });
-//       res.status(200).json({ success: true });
-//     } catch (error) {
-//       next(error)
-//     }
-//   }
-
-// //   async createAdmin(req: Request, res: Response, next: NextFunction) {
-// //     try {
-// //       const { name, email, password } = req.body;
-// //       const admin = await this.adminCase.createAdmin(name, email, password);
-// //       if (admin?.success) {
-// //         return res.status(201).json(admin);
-// //       }
-// //       return res.status(400).json(admin);
-// //     } catch (error) {
-// //       next(error)
-// //     }
-// //   }
-
-// }
-
-// export default AdminController;
-
 import { NextFunction, Request, Response } from "express";
 import AdminUseCase from "../../use-case/adminUseCase";
 import path from "path";
@@ -463,6 +401,31 @@ console.log('id',id ,'re',responseMessage);
       next(error);
     }
   }
+
+
+  async getAdminBookingsController(req: Request, res: Response, next: NextFunction) {
+    try {
+      const page = parseInt(req.query.page as string) || 1;
+      const limit = parseInt(req.query.limit as string) || 10;
+      
+      const bookings = await this.adminCase.getAdminBookingsUseCase(page, limit);
+      return res.status(200).json(bookings);
+    } catch (error) {
+      console.error(error);
+      return res.status(500).json({ message: "Failed to get bookings" });
+    }
+  }
+  
+
+  async getDashboardDetails(req: Request, res: Response, next: NextFunction) {
+    try {
+      const details = await this.adminCase.getDashboardDetails()
+      return res.status(200).json({success: true, data: details})
+    } catch (error) {
+      next(error)
+    }
+  }
+
 }
 
 export default AdminController;

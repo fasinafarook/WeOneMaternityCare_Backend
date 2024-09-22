@@ -34,6 +34,7 @@ interface IUserRepository {
   getWallet(userId: string): Promise<any>
   getScheduledBookingByRoomId(roomId: string): Promise<ScheduledBooking | null>
 
+  updatePassword(userId: string, password: string): Promise<void | null> 
 
   createComplaint(complaint: IComplaint): Promise<IComplaint>;
   getComplaintsByUser(userId: string): Promise<IComplaint[]>;

@@ -398,7 +398,38 @@ class ServiceProviderController {
   }
   
 
-  
+
+  async forgotPassword(req: Request, res: Response, next: NextFunction) {
+    try {
+      const { email } = req.body;
+      console.log(email);
+      const token = await this.serviceProviderCase.passwordReset(email);
+      if (!token) {
+        return res
+          .status(404)
+          .json({ success: false, message: "User not found" });
+      }
+      return res.status(200).json({ success: true, data: token });
+    } catch (error) {
+      next(error);
+    }
+  }
+
+  async resetPassword(req: Request, res: Response, next: NextFunction) {
+    try {
+      const token = req.headers.authorization?.split(" ")[1] as string;
+      if (!token) throw new AppError("Unauthorised user", 401);
+
+      const { otp, password } = req.body;
+      await this.serviceProviderCase.resetPassword(otp, password, token);
+      return res
+        .status(201)
+        .json({ success: true, message: "Password changed successfully" });
+    } catch (error) {
+      next(error);
+    }
+  }
+
 
   async editSlotController(req: Request, res: Response, next: NextFunction) {
     const { slotId } = req.params; // Slot ID passed from frontend
@@ -455,8 +486,52 @@ class ServiceProviderController {
   //   }
   // }
   
+  async editProfile(req: Request, res: Response, next: NextFunction) {
+    try {
+      console.log(req.body)
+      const {details} = req.body;
+      const serviceProviderId = req.serviceProviderId;
+      if(!serviceProviderId) throw new AppError("Interviewer id not found", 400);
+      if (!details) throw new AppError("Details not provided", 400);
+
+      await this.serviceProviderCase.editProfile(serviceProviderId, details)
+      return res.status(200).json({success: true, message: "Profile updated successfully"})
+
+    } catch (error) {
+      next(error)
+    }
+  }
 
 
+  async editPassword(req: Request, res: Response, next: NextFunction) {
+    try {
+      const serviceProviderId = req.serviceProviderId;
+      const {currentPassword, newPassword} = req.body
+      if(!serviceProviderId) throw new AppError("interviewer id not found", 400);
+      await this.serviceProviderCase.editPassword(serviceProviderId, currentPassword,  newPassword)
+      return res.status(200).send({success: true, message: "Password changed successfully"})
+    } catch (error) {
+      next(error)
+    }
+  }
+
+  async getProviderDashboard(req: Request, res: Response, next: NextFunction) {
+
+    try {
+      
+      const providerId = req.serviceProviderId;
+  
+      // Check if providerId exists
+      if (!providerId) {
+        return res.status(400).json({ message: 'Service provider ID is missing' });
+      }
+  
+      const dashboardData = await this.serviceProviderCase.getProviderDashboardData(providerId);
+      return res.status(200).json(dashboardData);
+    } catch (error) {
+      return res.status(500).json({ message: 'Failed to get dashboard data', error });
+    }
+  }
   
 }
 

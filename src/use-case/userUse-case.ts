@@ -189,6 +189,46 @@ class UserUseCase {
     return this.iUserRepository.getComplaintsByUser(userId);
   }
 
+
+  async passwordReset(email: string) {
+    try {
+      const candidate = await this.iUserRepository.findByEmail(email);
+      if (!candidate) {
+        return null
+      }
+      const { name } = candidate;
+      const otp = this.otpGenerate.generateOtp();
+      const hashedOtp = await this.hashPassword.hash(otp)
+      console.log("FORGOT PASSWORD OTP: ", otp) 
+      const token = this.jwtToken.otpToken({ userId: candidate._id }, hashedOtp);
+
+      await this.mailService.sendMail(name, email, otp);
+
+
+      return token;
+    } catch (error) {
+      throw new AppError("Failed to initiate password reset", 500);
+    }
+  }
+
+  
+
+  async resetPassword(UserOtp: string, password: string, token: any) {
+    const decodedToken = this.jwtToken.verifyJwtToken(token) as DecodedToken
+    const {otp, info}  = decodedToken
+    const {userId} = info
+    
+    const isOtpValid = await this.hashPassword.compare(UserOtp, otp)
+    if(!isOtpValid){
+      throw new AppError("Incorrect OTP", 400)
+    }
+    const hashedPassword = await this.hashPassword.hash(password)
+
+    await this.iUserRepository.updatePassword(userId, hashedPassword)
+
+    return 
+
+  }
  
   
 }

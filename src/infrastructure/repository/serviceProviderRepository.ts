@@ -9,6 +9,7 @@ import ScheduledBooking from "../../domain/entities/scheduledBookings";
 import { ScheduledBookingModel } from "../database/scheduledBookingsModel";
 import { WalletModel } from "../database/walletModel";
 
+
 import ProviderSlot, {
   Slot,
   Schedule,
@@ -278,6 +279,16 @@ class ServiceProviderRepository implements IServiceProviderRepository {
     return interview
   }
 
+
+  async updatePassword(
+    serviceProviderId: string,
+    
+    password: string
+  ): Promise<void | null> {
+    await serviceProviderModel.findByIdAndUpdate(serviceProviderId, {
+      password: password,
+    });
+  }
   // async findProviderSlotBySlotId(slotId: string): Promise<ProviderSlot | null> {
   //   return ProviderSlotModel.findOne({ "slots._id": slotId }).exec();
   // }
@@ -297,7 +308,57 @@ class ServiceProviderRepository implements IServiceProviderRepository {
     );
   }
   
+
+  async editProfile(interviewerId: string, details: ServiceProvider): Promise<void> {
+    const {name, mobile, location, service, expYear, qualification} = details
+    await serviceProviderModel.findByIdAndUpdate(interviewerId, {
+      name,
+      mobile, 
+      location,
+      service,
+      expYear, 
+      qualification
+    })
+  }
   
+
+
+  async getDashboardStats(providerId: string) {
+    const totalBookings = await ScheduledBookingModel.countDocuments({ serviceProviderId: providerId });
+    const scheduledBookings = await ScheduledBookingModel.countDocuments({ serviceProviderId: providerId, status: 'Scheduled' });
+    const completedBookings = await ScheduledBookingModel.countDocuments({ serviceProviderId: providerId, status: 'Completed' });
+    const canceledBookings = await ScheduledBookingModel.countDocuments({ serviceProviderId: providerId, status: 'Cancelled' });
+    const refundedBookings = await ScheduledBookingModel.countDocuments({ serviceProviderId: providerId, status: 'Refunded' });
+
+    console.log('Provider ID:', providerId);
+
+    const bookings = await ScheduledBookingModel.find({
+      serviceProviderId: providerId,
+      status: { $in: ['Completed', 'Scheduled'] }
+  });
+  console.log('Matching Bookings:', bookings);
+  
+
+    // Calculate total revenue from scheduled and completed bookings
+    const totalRevenue = bookings.reduce((total, booking) => {
+      if (booking.status === 'Scheduled' || booking.status === 'Completed') {
+        return total + booking.price;
+      }
+      return total;
+    }, 0);
+    
+    console.log("Total Revenue:", totalRevenue);
+
+
+    return {
+        totalBookings,
+        scheduledBookings,
+        completedBookings,
+        canceledBookings,
+        refundedBookings,
+        totalRevenue,
+    };
 }
 
+}
 export default ServiceProviderRepository;

@@ -10,6 +10,7 @@ interface IServiceProviderRepository {
     saveServiceProviderDetails(ServiceProviderDetails: ServiceProvider): Promise<ServiceProvider | null>
     findById(id: string): Promise<ServiceProvider | null>
     getAllCategories(): Promise<string[]>;
+    updatePassword(serviceProviderId: string, password: string): Promise<void | null>
 
     saveProviderSlot(slotData: ProviderSlot): Promise<ProviderSlot | null>
     getProviderSlots(serviceProviderId: string, page: number, limit: number, searchQuery: string): Promise<{slots: ProviderSlot[] | null, total: number}>
@@ -20,6 +21,8 @@ interface IServiceProviderRepository {
     // saveProviderSlots(providerSlot: ProviderSlot): Promise<void>;
     // findProviderSlotBySlotId(slotId: string): Promise<ProviderSlot | null>;
     updateStatus(bookingId: string, status: string): Promise<any>;
+    editProfile(serviceProviderId: string, details: ServiceProvider): Promise<void>
+    getDashboardStats(providerId: string): Promise<any>;
 
 
 

@@ -129,6 +129,9 @@ router.post('/complaints', userAuth, (req, res) => controller.fileComplaint(req,
 router.get('/complaints/:userId',userAuth, (req, res) => controller.getUserComplaints(req, res));
 
 
+router.post('/forgot-password', (req, res, next) => controller.forgotPassword(req, res, next))
+
+router.post('/reset-password', (req, res, next) => controller.resetPassword(req, res, next))
 
 router.get("/message",userAuth,controller.getUsersForSidebar)
 router.get("/completed/:userId",userAuth,controller.getCompletedBookings)

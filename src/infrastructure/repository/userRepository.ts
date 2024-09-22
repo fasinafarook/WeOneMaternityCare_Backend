@@ -83,46 +83,6 @@ class UserRepository implements IUserRepository {
   
 
 
-  // async getProviderSlotDetails(serviceProviderId: string): Promise<any> {
-  //   // Fetch basic information about the service provider
-  //   const providerDetails = await serviceProviderModel.findById(
-  //     serviceProviderId,
-  //     {
-  //       name: 1,
-  //       location: 1,
-  //       service: 1,
-  //       profilePicture: 1,
-  //       expYear: 1,
-  //     }
-  //   ).sort({ createdAt: -1 });
-
-  //   // Fetch slots for the service provider
-  //   const bookingSlotDetails = await ProviderSlotModel.aggregate([
-  //     {
-  //       $match: { serviceProviderId: serviceProviderId },
-  //     },
-  //     {
-  //       $unwind: "$slots",
-  //     },
-  //     {
-  //       $unwind: "$slots.schedule",
-  //     },
-  //     {
-  //       $match: {
-  //         // Optionally include date filtering if needed
-  //         "slots.date": { $gte: new Date() }, // Future slots only
-  //       },
-  //     },
-  //     {
-  //       $sort: { "slots.date": 1 },
-  //     },
-  //   ]);
-
-  //   return {
-  //     providerDetails,
-  //     bookingSlotDetails,
-  //   };
-  // }
 
   async getProviderSlotDetails(serviceProviderId: string): Promise<any> {
     // Fetch basic information about the service provider
@@ -298,8 +258,12 @@ class UserRepository implements IUserRepository {
   async getComplaintsByUser(userId: string): Promise<IComplaint[]> {
     return Complaint.find({ userId }).exec();
   }
+
+  
+
+}
  
   
-}
+
 
 export default UserRepository;

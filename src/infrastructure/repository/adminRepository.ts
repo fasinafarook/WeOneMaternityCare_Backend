@@ -24,6 +24,10 @@ import webinarModel from "../database/webinarModel";
 
 import { Complaint } from "../database/complaints";
 
+
+import ScheduledBooking from "../../domain/entities/scheduledBookings";
+import { ScheduledBookingModel } from "../database/scheduledBookingsModel";
+
 class AdminRepository implements IAdminRepository {
   async findByEmail(email: string): Promise<Admin | null> {
     const adminExists = await adminModel.findOne({ email });
@@ -270,6 +274,68 @@ class AdminRepository implements IAdminRepository {
     }
   }
 
+
+  async getAllBookings(page: number, limit: number): Promise<ScheduledBooking[]> {
+    try {
+      const skip = (page - 1) * limit;
+      const bookings = await ScheduledBookingModel.find()
+        .populate({
+          path: 'serviceProviderId',
+          select: 'name',
+        })
+        .populate({
+          path: 'userId',
+          select: 'name',
+        })
+        .sort({ createdAt: -1 })
+        .skip(skip)  // Skip based on the page number
+        .limit(limit) // Limit the number of bookings returned
+        .exec();
+  
+      return bookings;
+    } catch (error) {
+      console.error('Error fetching bookings:', error);
+      throw new Error('Failed to fetch bookings');
+    }
+  }
+
+
+
+ async  dashboardDetails(): Promise<any> {
+  
+
+  const providersCount = await serviceProviderModel.countDocuments();
+  const usersCount = await users.countDocuments();
+  
+  const bookings = await ScheduledBookingModel.aggregate([
+    {
+      $group: { _id: "$status", total: { $sum: 1 } },
+    },
+  ]);
+
+  const bookingsCount = { completed: 0, scheduled: 0, cancelled: 0, refunded: 0 };
+
+  bookings.forEach(int => {
+    if (int._id === "Completed") {
+      bookingsCount.completed = int.total;
+    } else if (int._id === "Scheduled") {
+      bookingsCount.scheduled = int.total;
+    } else if (int._id === "Cancelled") {
+      bookingsCount.cancelled = int.total;
+    } else if (int._id === "Refunded") {
+      bookingsCount.refunded = int.total;
+    }
+  });
+
+  const scheduledBookings = await ScheduledBookingModel.find();
+
+  return {
+    providersCount,
+    usersCount,
+    bookingsCount,
+    scheduledBookings,
+  };
+}
 }
 
 export default AdminRepository;
