@@ -49,17 +49,18 @@ class UserRepository implements IUserRepository {
       password: password,
     });
   }
-  async editProfile(
-    userId: string,
-    name: string,
-    mobile: number
-  ): Promise<void> {
-    // Update only the name and mobile fields
-    await users.findByIdAndUpdate(userId, {
+  // Backend: Repository (Optional)
+async editProfile(userId: string, name: string, mobile: number) {
+  await users.findByIdAndUpdate(
+    userId,
+    {
       name: name,
       mobile: mobile,
-    });
-  }
+    },
+    { new: true } // Return the updated document
+  );
+}
+
 
   async getApprovedAndUnblockedProviders(): Promise<ServiceProvider[]> {
     return serviceProviderModel

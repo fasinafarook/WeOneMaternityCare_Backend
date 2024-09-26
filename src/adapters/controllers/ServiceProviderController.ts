@@ -279,8 +279,16 @@ class ServiceProviderController {
         message: "Slot added successfully",
       });
     } catch (error) {
-      next(error);
+      console.error('Error adding slot:', error);
+      if (error instanceof AppError) {
+        // Make sure you're sending the error status and message properly
+        return res.status(error.statusCode).json({ success: false, message: error.message });
+      } else {
+        // Handle generic errors
+        return res.status(500).json({ success: false, message: 'Internal server error' });
+      }
     }
+    
   }
   
   async getProviderSlots(req: Request, res: Response, next: NextFunction) {
@@ -431,60 +439,24 @@ class ServiceProviderController {
   }
 
 
-  async editSlotController(req: Request, res: Response, next: NextFunction) {
-    const { slotId } = req.params; // Slot ID passed from frontend
-    const updatedSlotData = req.body; // Updated data to apply to the slot
+
   
-    try {
-      // Find the provider's slot that contains the slotId
-      const providerSlot = await ProviderSlotModel.findOne({
-        "slots._id": slotId, // Query the slots array to find the matching slot ID
-      });
-  
-      if (!providerSlot) {
-        return res.status(404).json({ message: 'Slot not found in any provider' });
-      }
-  
-      // Find the index of the specific slot by its _id
-      const slotIndex = providerSlot.slots.findIndex((s: any) => s._id.toString() === slotId);
-  
-      if (slotIndex === -1) {
-        return res.status(404).json({ message: 'Slot not found' });
-      }
-  
-      // Update the slot's schedule (or other fields) with new data
-      const updatedSlot = providerSlot.slots[slotIndex];
-      updatedSlot.schedule.forEach((schedule: any) => {
-        schedule.from = updatedSlotData.from || schedule.from;
-        schedule.to = updatedSlotData.to || schedule.to;
-        schedule.price = updatedSlotData.price || schedule.price;
-        schedule.services = updatedSlotData.services || schedule.services;
-        schedule.description = updatedSlotData.description || schedule.description;
-        schedule.status = updatedSlotData.status || schedule.status;
-      });
-  
-      // Save the updated provider slot document
-      await providerSlot.save();
-  
-      return res.status(200).json({ message: "Slot updated successfully", updatedSlot });
-    } catch (error) {
-      console.error('Error updating slot:', error);
-      return res.status(500).json({ message: "Error updating slot", error });
+async editSlot(req: Request, res: Response, next: NextFunction) {
+  try {
+    const { slotId } = req.params;
+    const updatedSlotData = req.body;
+    const result = await this.serviceProviderCase.editSlot(slotId, updatedSlotData);
+    res.status(200).json({ message: "Slot updated successfully", updatedSlot: result });
+  } catch (error) {
+    console.error('Error updating slot:', error);
+    if (error instanceof AppError) {
+      // Pass specific error message to frontend
+      res.status(error.statusCode).json({ message: error.message });
+    } else {
+      next(new AppError('Error updating slot', 500));
     }
   }
-  
-
-  // async editSlotController(req: Request, res: Response, next: NextFunction) {
-  //   const { slotId } = req.params;
-  //   const updatedSlotData = req.body;
-
-  //   try {
-  //     const result = await this.serviceProviderCase.execute(slotId, updatedSlotData);
-  //     return res.status(result.status).json(result.response);
-  //   } catch (error) {
-  //     return res.status(500).json({ message: 'Error updating slot', error });
-  //   }
-  // }
+}
   
   async editProfile(req: Request, res: Response, next: NextFunction) {
     try {

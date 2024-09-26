@@ -124,7 +124,6 @@ router.get("/wallet", userAuth, (req, res, next) =>
 );
 
 
-// Express route
 router.post('/complaints', userAuth, (req, res) => controller.fileComplaint(req, res));
 router.get('/complaints/:userId',userAuth, (req, res) => controller.getUserComplaints(req, res));
 

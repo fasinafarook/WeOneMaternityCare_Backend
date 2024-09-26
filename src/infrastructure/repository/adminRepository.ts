@@ -302,8 +302,6 @@ class AdminRepository implements IAdminRepository {
 
 
  async  dashboardDetails(): Promise<any> {
-  
-
   const providersCount = await serviceProviderModel.countDocuments();
   const usersCount = await users.countDocuments();
   

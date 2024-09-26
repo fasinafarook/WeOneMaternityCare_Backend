@@ -112,8 +112,8 @@ class ServiceProviderRepository implements IServiceProviderRepository {
               existingSlotIndex
             ].schedule.findIndex(
               (s) =>
-                s.from.toISOString() === newSchedule.from.toISOString() &&
-                s.to.toISOString() === newSchedule.to.toISOString()
+                (newSchedule.from < s.to && newSchedule.to > s.from)
+
             );
   
             if (existingScheduleIndex === -1) {
@@ -143,7 +143,6 @@ class ServiceProviderRepository implements IServiceProviderRepository {
     limit: number,
     searchQuery: string
   ): Promise<{ slots: ProviderSlot[]; total: number }> {
-    // console.log("search", searchQuery);
     const pipeline: any[] = [
       {
         $match: { serviceProviderId: serviceProviderId.toString() },
@@ -289,13 +288,13 @@ class ServiceProviderRepository implements IServiceProviderRepository {
       password: password,
     });
   }
-  // async findProviderSlotBySlotId(slotId: string): Promise<ProviderSlot | null> {
-  //   return ProviderSlotModel.findOne({ "slots._id": slotId }).exec();
-  // }
+  async findProviderSlot(slotId: string) {
+    return await ProviderSlotModel.findOne({ "slots._id": slotId });
+  }
 
-  // async saveProviderSlots(providerSlot: ProviderSlot): Promise<void> {
-  //   await providerSlot.save();
-  // }
+  async saveProviderSlots(providerSlot: any) {
+    return await providerSlot.save();
+  }
   
   async updateStatus(bookingId: string, status: string) {
     console.log("hi",bookingId,status);
@@ -309,6 +308,7 @@ class ServiceProviderRepository implements IServiceProviderRepository {
   }
   
 
+  
   async editProfile(interviewerId: string, details: ServiceProvider): Promise<void> {
     const {name, mobile, location, service, expYear, qualification} = details
     await serviceProviderModel.findByIdAndUpdate(interviewerId, {
@@ -329,36 +329,25 @@ class ServiceProviderRepository implements IServiceProviderRepository {
     const completedBookings = await ScheduledBookingModel.countDocuments({ serviceProviderId: providerId, status: 'Completed' });
     const canceledBookings = await ScheduledBookingModel.countDocuments({ serviceProviderId: providerId, status: 'Cancelled' });
     const refundedBookings = await ScheduledBookingModel.countDocuments({ serviceProviderId: providerId, status: 'Refunded' });
-
-    console.log('Provider ID:', providerId);
-
+  
     const bookings = await ScheduledBookingModel.find({
       serviceProviderId: providerId,
       status: { $in: ['Completed', 'Scheduled'] }
-  });
-  console.log('Matching Bookings:', bookings);
+    }).select('date status price');
   
-
-    // Calculate total revenue from scheduled and completed bookings
-    const totalRevenue = bookings.reduce((total, booking) => {
-      if (booking.status === 'Scheduled' || booking.status === 'Completed') {
-        return total + booking.price;
-      }
-      return total;
-    }, 0);
-    
-    console.log("Total Revenue:", totalRevenue);
-
-
+    const totalRevenue = bookings.reduce((total, booking) => total + booking.price, 0);
+  
     return {
-        totalBookings,
-        scheduledBookings,
-        completedBookings,
-        canceledBookings,
-        refundedBookings,
-        totalRevenue,
+      totalBookings,
+      scheduledBookings,
+      completedBookings,
+      canceledBookings,
+      refundedBookings,
+      totalRevenue,
+      bookings, // Include the bookings array for the frontend chart
     };
-}
+  }
+  
 
 }
 export default ServiceProviderRepository;
