@@ -262,36 +262,63 @@ class ServiceProviderUseCase {
 
  
 
-  // async execute(slotId: string, updatedSlotData: any) {
-  //   try {
-  //     const providerSlot = await this.iServiceProviderRepository.findProviderSlotBySlotId(slotId);
-
-  //     if (!providerSlot) {
-  //       return { status: 404, response: { message: 'Slot not found in any provider' } };
-  //     }
-
-  //     const slot = providerSlot.slots.find((s: any) => s._id.toString() === slotId);
-
-  //     if (!slot) {
-  //       return { status: 404, response: { message: 'Slot not found' } };
-  //     }
-
-  //     slot.schedule.forEach((schedule: any) => {
-  //       schedule.from = updatedSlotData.from || schedule.from;
-  //       schedule.to = updatedSlotData.to || schedule.to;
-  //       schedule.price = updatedSlotData.price || schedule.price;
-  //       schedule.services = updatedSlotData.services || schedule.services;
-  //       schedule.description = updatedSlotData.description || schedule.description;
-  //       schedule.status = updatedSlotData.status || schedule.status;
-  //     });
-
-  //     await this.iServiceProviderRepository.saveProviderSlots(providerSlot);
-
-  //     return { status: 200, response: { message: 'Slot updated successfully', updatedSlot: slot } };
-  //   } catch (error) {
-  //     throw new Error('Error updating slot');
-  //   }
-  // }
+  async editSlot(slotId: string, updatedSlotData: any) {
+    const providerSlot = await this.iServiceProviderRepository.findProviderSlot(slotId);
+  
+    if (!providerSlot) {
+      throw new AppError('Slot not found in any provider', 404);
+    }
+  
+    const slotIndex = providerSlot.slots.findIndex((s: any) => s._id.toString() === slotId);
+  
+    if (slotIndex === -1) {
+      throw new AppError('Slot not found', 404);
+    }
+  
+    const newFrom = new Date(updatedSlotData.from);
+    const newTo = new Date(updatedSlotData.to);
+    const slotDate = newFrom.toISOString().split('T')[0];
+  
+    const isDuplicateTimeOnSameDay = providerSlot.slots.some((slot: any, index: number) => {
+      if (index !== slotIndex) {
+        return slot.schedule.some((schedule: any) => {
+          const existingFrom = new Date(schedule.from);
+          const existingTo = new Date(schedule.to);
+          const existingDate = existingFrom.toISOString().split('T')[0];
+  
+          if (existingDate === slotDate) {
+            const isOverlapping =
+              (newFrom <= existingTo && newTo >= existingFrom) || 
+              (newFrom >= existingFrom && newFrom < existingTo) || 
+              (newTo > existingFrom && newTo <= existingTo) ||   
+              (newFrom <= existingFrom && newTo >= existingTo);    
+            return isOverlapping;
+          }
+  
+          return false;
+        });
+      }
+      return false;
+    });
+  
+    if (isDuplicateTimeOnSameDay) {
+      throw new AppError("Slot time already exists on the same date", 400);
+    }
+  
+    const updatedSlot = providerSlot.slots[slotIndex];
+    updatedSlot.schedule.forEach((schedule: any) => {
+      schedule.from = updatedSlotData.from || schedule.from;
+      schedule.to = updatedSlotData.to || schedule.to;
+      schedule.price = updatedSlotData.price || schedule.price;
+      schedule.services = updatedSlotData.services || schedule.services;
+      schedule.description = updatedSlotData.description || schedule.description;
+      schedule.status = updatedSlotData.status || schedule.status;
+    });
+  
+    await this.iServiceProviderRepository.saveProviderSlots(providerSlot);
+    return updatedSlot;
+  }
+  
 
   async passwordReset(email: string) {
     try {

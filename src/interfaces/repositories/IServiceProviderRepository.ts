@@ -18,8 +18,8 @@ interface IServiceProviderRepository {
     getScheduledBookings(serviceProviderId: string, page: number, limit: number): Promise<{bookings: ScheduledBooking[], total: number} >
     getPaymentDashboard(serviceProviderId: string): Promise<any>
     getScheduledBookingByRoomId(roomId: string): Promise<ScheduledBooking | null>
-    // saveProviderSlots(providerSlot: ProviderSlot): Promise<void>;
-    // findProviderSlotBySlotId(slotId: string): Promise<ProviderSlot | null>;
+    findProviderSlot(slotId: string): Promise<any>;
+    saveProviderSlots(providerSlot: any): Promise<any>;
     updateStatus(bookingId: string, status: string): Promise<any>;
     editProfile(serviceProviderId: string, details: ServiceProvider): Promise<void>
     getDashboardStats(providerId: string): Promise<any>;

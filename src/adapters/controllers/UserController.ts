@@ -125,19 +125,10 @@ class UserController {
     }
   }
 
-  // async home (req: Request, res: Response, next: NextFunction) {
-  //   try {
-  //     const stacksList = await this.userCase.findAllC()
-  //     return res.status(200).json({success: true, data: {stacks: stacksList}})
-  //   } catch (error) {
-  //     next(error)
-  //   }
-  // }
 
   async home(req: Request, res: Response, next: NextFunction) {
     try {
-      // Fetch any other relevant data instead of stacksList if needed
-      // For example, if you want to return a welcome message or other info, do it here
+     
       const welcomeMessage = "Welcome to the home page!";
 
       return res
@@ -168,19 +159,27 @@ class UserController {
     }
   }
 
-  async editProfile(req: Request, res: Response, next: NextFunction) {
-    try {
-      const { name, mobile } = req.body;
-      const userId = req.userId;
-      if (!userId) throw new AppError("user id not found", 400);
-      await this.userCase.editProfile(userId, name, mobile);
-      return res
-        .status(200)
-        .send({ success: true, message: "Profile update successfully" });
-    } catch (error) {
-      next(error);
-    }
+async editProfile(req: Request, res: Response, next: NextFunction) {
+  try {
+    const { name, mobile } = req.body;
+    console.log('Received data:', name, mobile); // Debug log
+
+    // Check if userId is properly injected by middleware
+    const userId = req.userId;
+    if (!userId) throw new AppError("User ID not found", 400);
+
+    // Call service to update profile
+    await this.userCase.editProfile(userId, name, mobile);
+
+    return res.status(200).send({
+      success: true,
+      message: "Profile updated successfully",
+    });
+  } catch (error) {
+    next(error);
   }
+}
+
 
   async editPassword(req: Request, res: Response, next: NextFunction) {
     try {
