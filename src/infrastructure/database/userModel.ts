@@ -28,12 +28,14 @@ const userSchema: Schema<IUser> = new Schema({
     required: true,
     default: false,
   },
-  isAdmin: { type: Boolean, required: true, default: false },
+  // isAdmin: { type: Boolean, required: true, default: false },
   userAddress: {
     type: String,
     required: false,
   },
-
+  profilePicture: {
+    type: String,
+  },
   bp: {
     type: String,
     required: false,

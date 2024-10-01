@@ -175,7 +175,6 @@ class AdminRepository implements IAdminRepository {
     return { blogs, total };
   }
 
- 
   async unlistBlog(blogId: string) {
     if (!blogId) {
       throw new Error("Blog ID is required");
@@ -186,7 +185,7 @@ class AdminRepository implements IAdminRepository {
       throw new Error("Blog not found");
     }
 
-    blog.isListed = false; 
+    blog.isListed = false;
     return await blog.save();
   }
 
@@ -234,7 +233,7 @@ class AdminRepository implements IAdminRepository {
     return webinar;
   }
   async getAllComplaints(): Promise<any[]> {
-    return await Complaint.find(); 
+    return await Complaint.find().sort({ createdAt: -1 });
   }
 
   async respondToComplaint(
@@ -275,8 +274,8 @@ class AdminRepository implements IAdminRepository {
           select: "name",
         })
         .sort({ createdAt: -1 })
-        .skip(skip) 
-        .limit(limit) 
+        .skip(skip)
+        .limit(limit)
         .exec();
 
       return bookings;

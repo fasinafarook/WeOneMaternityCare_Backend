@@ -12,7 +12,8 @@ interface Service {
 }
 
 class ServiceProviderController {
-  constructor(private serviceProviderCase: ServiceProviderUseCase) {        this.emergencycancelBooking = this.emergencycancelBooking.bind(this);
+  constructor(private serviceProviderCase: ServiceProviderUseCase) {
+    this.emergencycancelBooking = this.emergencycancelBooking.bind(this);
   }
 
   async verifyServiceProviderEmail(
@@ -47,7 +48,10 @@ class ServiceProviderController {
         serviceProviderInfo
       );
       if (response?.status === 200) {
-        throw new AppError("Email already in use. Please log in or choose another", 400);
+        throw new AppError(
+          "Email already in use. Please log in or choose another",
+          400
+        );
       }
 
       if (response?.status === 201) {
@@ -511,30 +515,34 @@ class ServiceProviderController {
     }
   }
 
-  async emergencycancelBooking (req: Request, res: Response)  {
+  async emergencycancelBooking(req: Request, res: Response) {
     try {
-        const { bookingId } = req.params;
-        const { cancelReason } = req.body;
-        
-        console.log('bbbbb', bookingId, cancelReason);
-        console.log('About to call cancelBookingUseCase');
-        
-        const result = await this.serviceProviderCase.cancelBookingUseCase(bookingId, cancelReason);
-        
-        const mailService = new MailService();
-        await mailService.sendLeaveMail(
-            result.user.name,
-            result.user.email,
-            cancelReason
-        );
-        
-        return res.status(200).json({ message: 'Booking canceled successfully', result });
-    } catch (error) {
-        console.log('Error in EmergencycancelBooking:', error);
-        return res.status(500).json({ message: 'Cancellation failed', error });
-    }
-};
+      const { bookingId } = req.params;
+      const { cancelReason } = req.body;
 
+      console.log("bbbbb", bookingId, cancelReason);
+      console.log("About to call cancelBookingUseCase");
+
+      const result = await this.serviceProviderCase.cancelBookingUseCase(
+        bookingId,
+        cancelReason
+      );
+
+      const mailService = new MailService();
+      await mailService.sendLeaveMail(
+        result.user.name,
+        result.user.email,
+        cancelReason
+      );
+
+      return res
+        .status(200)
+        .json({ message: "Booking canceled successfully", result });
+    } catch (error) {
+      console.log("Error in EmergencycancelBooking:", error);
+      return res.status(500).json({ message: "Cancellation failed", error });
+    }
+  }
 }
 
 export default ServiceProviderController;

@@ -5,7 +5,8 @@ interface IUser {
   mobile: string;
   password: string;
   isBlocked: boolean;
-  isAdmin: boolean;
+  // isAdmin: boolean;
+  profilePicture?:string;
   userAddress?: string;
   bp?: string;
   sugar?: string;
@@ -14,6 +15,7 @@ interface IUser {
   recordDate?: Date;
   createdAt: Date;
   updatedAt: Date;
+
 }
 
 export default IUser;

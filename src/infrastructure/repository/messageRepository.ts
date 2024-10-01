@@ -20,7 +20,9 @@ export class MessageRepository implements IMessageRepository {
   }
 
   async getMessages(conversationId: string) {
-    const conversation = await Conversation.findOne({ _id: conversationId }).populate("messages");
+    const conversation = await Conversation.findOne({
+      _id: conversationId,
+    }).populate("messages");
     return conversation ? conversation.messages : [];
   }
 }

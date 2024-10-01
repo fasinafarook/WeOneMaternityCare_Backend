@@ -34,7 +34,10 @@ class UserController {
       const response = await this.userCase.findUser(userInfo);
 
       if (response?.status === 200) {
-        throw new AppError("Email already in use. Please log in or choose another", 400);
+        throw new AppError(
+          "Email already in use. Please log in or choose another",
+          400
+        );
       }
 
       if (response?.status === 201) {
@@ -43,9 +46,13 @@ class UserController {
       }
     } catch (error) {
       if (error instanceof AppError) {
-        return res.status(error.statusCode).json({ success: false, message: error.message });
+        return res
+          .status(error.statusCode)
+          .json({ success: false, message: error.message });
       }
-     return res.status(500).json({ success: false, message: "Internal server error" });
+      return res
+        .status(500)
+        .json({ success: false, message: "Internal server error" });
     }
   }
 
@@ -61,7 +68,10 @@ class UserController {
 
       const response = await this.userCase.findUser(userInfo);
       if (response?.status === 200) {
-        throw new AppError("Email already in use. Please log in or choose another", 400);
+        throw new AppError(
+          "Email already in use. Please log in or choose another",
+          400
+        );
       }
 
       if (response?.status === 201) {
