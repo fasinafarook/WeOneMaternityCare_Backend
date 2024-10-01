@@ -1,5 +1,3 @@
-
-
 import Admin from "../domain/entities/admin";
 import AppError from "../infrastructure/utils/appError";
 import IAdminRepository from "../interfaces/repositories/IAdminRepository";
@@ -186,19 +184,21 @@ class AdminUseCase {
     return await this.iAdminRepository.getAllComplaints();
   }
 
-  async respondToComplaint(id: string, responseMessage: string): Promise<boolean> {
+  async respondToComplaint(
+    id: string,
+    responseMessage: string
+  ): Promise<boolean> {
     return this.iAdminRepository.respondToComplaint(id, responseMessage);
   }
-  
+
   async getAdminBookingsUseCase(page: number, limit: number) {
     const bookings = await this.iAdminRepository.getAllBookings(page, limit);
     return bookings;
   }
-  
-  async getDashboardDetails() {
-    const details = await this.iAdminRepository.dashboardDetails()
-    return details
-  }
 
+  async getDashboardDetails() {
+    const details = await this.iAdminRepository.dashboardDetails();
+    return details;
+  }
 }
 export default AdminUseCase;

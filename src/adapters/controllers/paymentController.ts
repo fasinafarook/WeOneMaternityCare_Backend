@@ -44,7 +44,7 @@ class PaymentController {
 
     console.log("Received webhook request");
     console.log("Headers:", req.headers);
-    console.log("Raw Body:", req.body.toString("utf8")); 
+    console.log("Raw Body:", req.body.toString("utf8"));
     console.log("endpoint: ", endpointSecret);
 
     const sig: any = req.headers["stripe-signature"];
@@ -95,7 +95,7 @@ class PaymentController {
 
       if (!cancellationReason) {
         res.status(400).json({ message: "Cancellation reason is required." });
-        return; 
+        return;
       }
 
       // Call the use case to handle the cancellation logic
@@ -140,9 +140,6 @@ class PaymentController {
       next(error);
     }
   }
-  
-
-  
 }
 
 export default PaymentController;

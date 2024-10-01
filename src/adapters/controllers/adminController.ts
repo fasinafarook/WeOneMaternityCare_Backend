@@ -23,8 +23,8 @@ class AdminController {
         res.cookie("adminToken", admin.token, {
           expires: expiryDate,
           httpOnly: true,
-          secure: true, // use true if you're serving over https
-          sameSite: "none", // allows cross-site cookie usage
+          secure: true,
+          sameSite: "none",
         });
         return res.status(200).json(admin);
       }

@@ -423,31 +423,34 @@ class ServiceProviderUseCase {
     return dashboardData;
   }
 
-
-
   async cancelBookingUseCase(bookingId: string, cancelReason: string) {
-    console.log('Inside cancelBookingUseCase:', bookingId, cancelReason); 
+    console.log("Inside cancelBookingUseCase:", bookingId, cancelReason);
 
     try {
-        console.log('Fetching booking by ID:', bookingId);
-        
-        const booking = await this.iServiceProviderRepository.findBookingById(bookingId);
-        if (!booking) {
-            console.log('Booking not found');
-            throw new Error("Booking not found");
-        }
+      console.log("Fetching booking by ID:", bookingId);
 
-        console.log('Booking found:', booking);
-        
-        const cancelledBooking = await this.iServiceProviderRepository.cancelBooking(bookingId, cancelReason);
-        console.log('Booking cancelled:', cancelledBooking);
-        return cancelledBooking;
+      const booking = await this.iServiceProviderRepository.findBookingById(
+        bookingId
+      );
+      if (!booking) {
+        console.log("Booking not found");
+        throw new Error("Booking not found");
+      }
+
+      console.log("Booking found:", booking);
+
+      const cancelledBooking =
+        await this.iServiceProviderRepository.cancelBooking(
+          bookingId,
+          cancelReason
+        );
+      console.log("Booking cancelled:", cancelledBooking);
+      return cancelledBooking;
     } catch (error) {
-        console.log('Error occurred in cancelBookingUseCase:', error);
-        throw error;
+      console.log("Error occurred in cancelBookingUseCase:", error);
+      throw error;
     }
-}
-
+  }
 }
 
 export default ServiceProviderUseCase;

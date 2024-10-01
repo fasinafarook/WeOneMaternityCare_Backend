@@ -62,15 +62,15 @@ class ServiceProviderRepository implements IServiceProviderRepository {
   }
 
   async getAllCategories(): Promise<string[]> {
-    const categories = await CategoryModel.find({ isListed: true }).select("categoryName");
+    const categories = await CategoryModel.find({ isListed: true }).select(
+      "categoryName"
+    );
     return categories.map((category) => category.categoryName);
   }
 
-  async saveProviderSlot(
-    slotData: ProviderSlot
-  ): Promise<ProviderSlot | null> {
+  async saveProviderSlot(slotData: ProviderSlot): Promise<ProviderSlot | null> {
     const { serviceProviderId, slots } = slotData;
-  
+
     const transformData = (
       data: any[],
       serviceProviderId: string
@@ -90,9 +90,9 @@ class ServiceProviderRepository implements IServiceProviderRepository {
       return { serviceProviderId, slots };
     };
     const transformedData = transformData(slots, serviceProviderId);
-  
+
     let providerSlot = await ProviderSlotModel.findOne({ serviceProviderId });
-  
+
     if (!providerSlot) {
       providerSlot = new ProviderSlotModel(transformedData);
     } else {
@@ -102,7 +102,7 @@ class ServiceProviderRepository implements IServiceProviderRepository {
             slot.date?.toISOString().split("T")[0] ===
             newSlot.date?.toISOString().split("T")[0]
         );
-  
+
         if (existingSlotIndex === -1) {
           providerSlot?.slots.push(newSlot);
         } else {
@@ -110,18 +110,14 @@ class ServiceProviderRepository implements IServiceProviderRepository {
             const existingScheduleIndex = providerSlot?.slots[
               existingSlotIndex
             ].schedule.findIndex(
-              (s) =>
-                (newSchedule.from < s.to && newSchedule.to > s.from)
-
+              (s) => newSchedule.from < s.to && newSchedule.to > s.from
             );
-  
+
             if (existingScheduleIndex === -1) {
-              providerSlot?.slots[existingSlotIndex].schedule.push(
-                newSchedule
-              );
+              providerSlot?.slots[existingSlotIndex].schedule.push(newSchedule);
             } else {
               throw new AppError("Time slot already taken", 400);
-  
+
               providerSlot!.slots[existingSlotIndex].schedule[
                 existingScheduleIndex!
               ] = newSchedule;
@@ -130,11 +126,10 @@ class ServiceProviderRepository implements IServiceProviderRepository {
         }
       });
     }
-  
+
     const savedSlot = await providerSlot.save();
     return savedSlot;
   }
-  
 
   async getProviderSlots(
     serviceProviderId: string,
@@ -150,7 +145,6 @@ class ServiceProviderRepository implements IServiceProviderRepository {
         $unwind: "$slots",
       },
     ];
-
 
     if (searchQuery) {
       pipeline.push({
@@ -271,15 +265,16 @@ class ServiceProviderRepository implements IServiceProviderRepository {
     return { bookings, totalRevenue, wallet };
   }
 
-  async getScheduledBookingByRoomId(roomId: string): Promise<ScheduledBooking | null> {
-    const interview = await ScheduledBookingModel.findOne({roomId: roomId})
-    return interview
+  async getScheduledBookingByRoomId(
+    roomId: string
+  ): Promise<ScheduledBooking | null> {
+    const interview = await ScheduledBookingModel.findOne({ roomId: roomId });
+    return interview;
   }
-
 
   async updatePassword(
     serviceProviderId: string,
-    
+
     password: string
   ): Promise<void | null> {
     await serviceProviderModel.findByIdAndUpdate(serviceProviderId, {
@@ -293,48 +288,63 @@ class ServiceProviderRepository implements IServiceProviderRepository {
   async saveProviderSlots(providerSlot: any) {
     return await providerSlot.save();
   }
-  
+
   async updateStatus(bookingId: string, status: string) {
-    console.log("hi",bookingId,status);
+    console.log("hi", bookingId, status);
 
     return await ScheduledBookingModel.findByIdAndUpdate(
-      
       bookingId,
       { status },
       { new: true } // Return the updated document
     );
   }
-  
 
-  
-  async editProfile(interviewerId: string, details: ServiceProvider): Promise<void> {
-    const {name, mobile, location, service, expYear, qualification} = details
+  async editProfile(
+    interviewerId: string,
+    details: ServiceProvider
+  ): Promise<void> {
+    const { name, mobile, location, service, expYear, qualification } = details;
     await serviceProviderModel.findByIdAndUpdate(interviewerId, {
       name,
-      mobile, 
+      mobile,
       location,
       service,
-      expYear, 
-      qualification
-    })
+      expYear,
+      qualification,
+    });
   }
-  
-
 
   async getDashboardStats(providerId: string) {
-    const totalBookings = await ScheduledBookingModel.countDocuments({ serviceProviderId: providerId });
-    const scheduledBookings = await ScheduledBookingModel.countDocuments({ serviceProviderId: providerId, status: 'Scheduled' });
-    const completedBookings = await ScheduledBookingModel.countDocuments({ serviceProviderId: providerId, status: 'Completed' });
-    const canceledBookings = await ScheduledBookingModel.countDocuments({ serviceProviderId: providerId, status: 'Cancelled' });
-    const refundedBookings = await ScheduledBookingModel.countDocuments({ serviceProviderId: providerId, status: 'Refunded' });
-  
+    const totalBookings = await ScheduledBookingModel.countDocuments({
+      serviceProviderId: providerId,
+    });
+    const scheduledBookings = await ScheduledBookingModel.countDocuments({
+      serviceProviderId: providerId,
+      status: "Scheduled",
+    });
+    const completedBookings = await ScheduledBookingModel.countDocuments({
+      serviceProviderId: providerId,
+      status: "Completed",
+    });
+    const canceledBookings = await ScheduledBookingModel.countDocuments({
+      serviceProviderId: providerId,
+      status: "Cancelled",
+    });
+    const refundedBookings = await ScheduledBookingModel.countDocuments({
+      serviceProviderId: providerId,
+      status: "Refunded",
+    });
+
     const bookings = await ScheduledBookingModel.find({
       serviceProviderId: providerId,
-      status: { $in: ['Completed', 'Scheduled'] }
-    }).select('date status price');
-  
-    const totalRevenue = bookings.reduce((total, booking) => total + booking.price, 0);
-  
+      status: { $in: ["Completed", "Scheduled"] },
+    }).select("date status price");
+
+    const totalRevenue = bookings.reduce(
+      (total, booking) => total + booking.price,
+      0
+    );
+
     return {
       totalBookings,
       scheduledBookings,
@@ -342,45 +352,43 @@ class ServiceProviderRepository implements IServiceProviderRepository {
       canceledBookings,
       refundedBookings,
       totalRevenue,
-      bookings, 
+      bookings,
     };
   }
-  
 
   async findBookingById(bookingId: string): Promise<any> {
-    console.log('Inside findBookingById:', bookingId);
-    
+    console.log("Inside findBookingById:", bookingId);
+
     const booking = await ScheduledBookingModel.findById(bookingId);
-    console.log('Booking retrieved:', booking);
+    console.log("Booking retrieved:", booking);
     return booking;
-}
-
-async cancelBooking(bookingId: string, cancelReason: string): Promise<any> {
-  console.log('Inside cancelBooking:', bookingId, cancelReason);
-
-  const booking = await ScheduledBookingModel.findById(bookingId);
-  if (!booking) {
-      console.log('Booking not found during cancellation');
-      throw new Error("Booking not found");
   }
 
-  booking.status = "Refunded";
-  booking.EmergencyLeaveReason = cancelReason;
-  booking.EmergencyLeaveDate = new Date();
+  async cancelBooking(bookingId: string, cancelReason: string): Promise<any> {
+    console.log("Inside cancelBooking:", bookingId, cancelReason);
 
-  await booking.save();
-  const user = await users.findById(booking.userId);
+    const booking = await ScheduledBookingModel.findById(bookingId);
+    if (!booking) {
+      console.log("Booking not found during cancellation");
+      throw new Error("Booking not found");
+    }
+
+    booking.status = "Refunded";
+    booking.EmergencyLeaveReason = cancelReason;
+    booking.EmergencyLeaveDate = new Date();
+
+    await booking.save();
+    const user = await users.findById(booking.userId);
     if (!user) throw new Error("User not found"); // Ensure user exists
 
     // Return both the cancelled booking and the user details
     return {
-        booking,
-        user: {
-            name: user.name,
-            email: user.email
-        }
+      booking,
+      user: {
+        name: user.name,
+        email: user.email,
+      },
     };
-};
-
+  }
 }
 export default ServiceProviderRepository;

@@ -50,17 +50,16 @@ class UserRepository implements IUserRepository {
     });
   }
   // Backend: Repository (Optional)
-async editProfile(userId: string, name: string, mobile: number) {
-  await users.findByIdAndUpdate(
-    userId,
-    {
-      name: name,
-      mobile: mobile,
-    },
-    { new: true } // Return the updated document
-  );
-}
-
+  async editProfile(userId: string, name: string, mobile: number) {
+    await users.findByIdAndUpdate(
+      userId,
+      {
+        name: name,
+        mobile: mobile,
+      },
+      { new: true } // Return the updated document
+    );
+  }
 
   async getApprovedAndUnblockedProviders(): Promise<ServiceProvider[]> {
     return serviceProviderModel
@@ -78,26 +77,28 @@ async editProfile(userId: string, name: string, mobile: number) {
   }
   async getAllCategories(): Promise<string[]> {
     // Fetch categories and return an array of category names
-    const categories = await CategoryModel.find({ isListed: true }).select("categoryName");
+    const categories = await CategoryModel.find({ isListed: true }).select(
+      "categoryName"
+    );
     return categories.map((category) => category.categoryName);
   }
-  
-
-
 
   async getProviderSlotDetails(serviceProviderId: string): Promise<any> {
-    const providerDetails = await serviceProviderModel.findById(serviceProviderId, {
-      name: 1,
-      location: 1,
-      service: 1,
-      profilePicture: 1,
-      expYear: 1,
-    });
-  
+    const providerDetails = await serviceProviderModel.findById(
+      serviceProviderId,
+      {
+        name: 1,
+        location: 1,
+        service: 1,
+        profilePicture: 1,
+        expYear: 1,
+      }
+    );
+
     const currentDate = new Date();
     const startOfToday = new Date(currentDate.setHours(0, 0, 0, 0));
     const endOfToday = new Date(currentDate.setHours(23, 59, 59, 999));
-  
+
     const bookingSlotDetails = await ProviderSlotModel.aggregate([
       {
         $match: { serviceProviderId: serviceProviderId },
@@ -117,23 +118,23 @@ async editProfile(userId: string, name: string, mobile: number) {
             {
               $and: [
                 { "slots.date": { $gte: startOfToday, $lte: endOfToday } },
-                { "slots.schedule.from": { $gte: new Date() } }, 
+                { "slots.schedule.from": { $gte: new Date() } },
               ],
             },
           ],
         },
       },
       {
-        $sort: { "slots.date": 1, "slots.schedule.from": 1 }, 
+        $sort: { "slots.date": 1, "slots.schedule.from": 1 },
       },
     ]);
-  
+
     return {
       providerDetails,
       bookingSlotDetails,
     };
   }
-  
+
   async bookSlot(info: any): Promise<void> {
     const { serviceProviderId, _id, date, userId } = info;
 
@@ -149,7 +150,7 @@ async editProfile(userId: string, name: string, mobile: number) {
         },
         {
           arrayFilters: [{ "slotElem.date": date }, { "schedElem._id": _id }],
-          new: true, 
+          new: true,
         }
       );
 
@@ -186,7 +187,11 @@ async editProfile(userId: string, name: string, mobile: number) {
 
     // Fetch the blogs from the database
     const [blogs, total] = await Promise.all([
-      BlogModel.find({ isListed: true }).skip(skip).sort({ createdAt: -1 }).limit(limit).exec(),
+      BlogModel.find({ isListed: true })
+        .skip(skip)
+        .sort({ createdAt: -1 })
+        .limit(limit)
+        .exec(),
       BlogModel.countDocuments({ isListed: true }),
     ]);
 
@@ -200,7 +205,7 @@ async editProfile(userId: string, name: string, mobile: number) {
       },
       {
         $lookup: {
-          from: "serviceProviders", 
+          from: "serviceProviders",
           let: { serviceProviderId: { $toObjectId: "$serviceProviderId" } },
           pipeline: [
             {
@@ -209,7 +214,7 @@ async editProfile(userId: string, name: string, mobile: number) {
               },
             },
           ],
-          as: "serviceProvider", 
+          as: "serviceProvider",
         },
       },
       { $unwind: "$serviceProvider" },
@@ -243,9 +248,11 @@ async editProfile(userId: string, name: string, mobile: number) {
     return { bookings, totalRevenue, wallet };
   }
 
-  async getScheduledBookingByRoomId(roomId: string): Promise<ScheduledBooking | null> {
-    const interview = await ScheduledBookingModel.findOne({roomId: roomId})
-    return interview
+  async getScheduledBookingByRoomId(
+    roomId: string
+  ): Promise<ScheduledBooking | null> {
+    const interview = await ScheduledBookingModel.findOne({ roomId: roomId });
+    return interview;
   }
 
   async createComplaint(complaint: IComplaint): Promise<IComplaint> {
@@ -255,14 +262,8 @@ async editProfile(userId: string, name: string, mobile: number) {
   }
 
   async getComplaintsByUser(userId: string): Promise<IComplaint[]> {
-    return Complaint.find({ userId }).exec();
+    return Complaint.find({ userId }).sort({ createdAt: -1 }).exec();
   }
-
-  
-
 }
- 
-  
-
 
 export default UserRepository;

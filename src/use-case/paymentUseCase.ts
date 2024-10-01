@@ -55,7 +55,7 @@ class PaymentUseCase {
       title,
       description,
       roomId,
-      paymentIntentId, 
+      paymentIntentId,
     });
     // const type = "credit";
     // const wallet = await this.walletRepository.updateWallet(
@@ -135,6 +135,3 @@ class PaymentUseCase {
 }
 
 export default PaymentUseCase;
-
-
-

@@ -5,7 +5,7 @@ import { ScheduledBookingModel } from "../database/scheduledBookingsModel";
 import AppError from "../utils/appError";
 interface ProcessRefundResult {
   success: boolean;
-  booking?: any; 
+  booking?: any;
 }
 
 class PaymentRepository implements IPaymentRepository {
@@ -38,7 +38,7 @@ class PaymentRepository implements IPaymentRepository {
         },
         {
           arrayFilters: [{ "slotElem.date": date }, { "schedElem._id": _id }],
-          new: true, 
+          new: true,
         }
       );
 
@@ -109,7 +109,7 @@ class PaymentRepository implements IPaymentRepository {
       const booking = await ScheduledBookingModel.findByIdAndUpdate(
         id,
         { status: "Refunded" },
-        { new: true } 
+        { new: true }
       ).exec();
 
       if (!booking) {
