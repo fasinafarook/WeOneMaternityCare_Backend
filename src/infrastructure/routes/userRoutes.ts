@@ -1,38 +1,7 @@
-// // // src/routes/userRoutes.ts
-
-// // import express from 'express';
-// // import userController from '../../adapters/controllers/UserController';
-
-// // const router = express.Router();
-
-// // router.post('/client-register', (req, res) => userController.register(req, res));
-
-// // export default router;
-// import express from 'express';
-// import UserController from '../../adapters/controllers/UserController';
-// import { UserRepository } from '../repository/userRepository';
-
-// const router = express.Router();
-// const userRepository = new UserRepository();
-// const userController = new UserController(userRepository);
-
-// router.post('/client-register', userController.register.bind(userController));
-
-// export default router;
-
-// import express from 'express';
-// import { userRegistration } from '../../adapters/controllers/UserController';
-
-// const router = express.Router();
-
-// router.post('/client-register', userRegistration);
-
-// export default router;
 import express from "express";
 const router = express.Router();
 import UserController from "../../adapters/controllers/UserController";
 import UserUseCase from "../../use-case/userUse-case";
-// import users from "../database/userModel"
 import UserRepository from "../repository/userRepository";
 import HashPassword from "../utils/hashPassword";
 import AppError from "../utils/appError";
@@ -94,14 +63,12 @@ router.get("/service-providers", userAuth, (req, res, next) =>
 );
 
 router.get("/categories", (req, res, next) =>
-    controller.getCategories(req, res, next)
-  );
+  controller.getCategories(req, res, next)
+);
 
 router.get("/serviceProviderDetails/:id", userAuth, (req, res, next) =>
   controller.getServiceProviderDetails(req, res, next)
 );
-
-// router.get('/get-service-providers', (req, res, next) => controller.getInterviewersByTech(req, res, next))
 
 router.get(
   "/get-service-providers-slots-details/:serviceProviderId",
@@ -123,19 +90,22 @@ router.get("/wallet", userAuth, (req, res, next) =>
   controller.getWallet(req, res, next)
 );
 
+router.post("/complaints", userAuth, (req, res) =>
+  controller.fileComplaint(req, res)
+);
+router.get("/complaints/:userId", userAuth, (req, res) =>
+  controller.getUserComplaints(req, res)
+);
 
-router.post('/complaints', userAuth, (req, res) => controller.fileComplaint(req, res));
-router.get('/complaints/:userId',userAuth, (req, res) => controller.getUserComplaints(req, res));
+router.post("/forgot-password", (req, res, next) =>
+  controller.forgotPassword(req, res, next)
+);
 
+router.post("/reset-password", (req, res, next) =>
+  controller.resetPassword(req, res, next)
+);
 
-router.post('/forgot-password', (req, res, next) => controller.forgotPassword(req, res, next))
-
-router.post('/reset-password', (req, res, next) => controller.resetPassword(req, res, next))
-
-router.get("/message",userAuth,controller.getUsersForSidebar)
-router.get("/completed/:userId",userAuth,controller.getCompletedBookings)
-
-
-
+router.get("/message", userAuth, controller.getUsersForSidebar);
+router.get("/completed/:userId", userAuth, controller.getCompletedBookings);
 
 export default router;

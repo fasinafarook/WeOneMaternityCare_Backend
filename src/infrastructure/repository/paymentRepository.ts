@@ -5,7 +5,7 @@ import { ScheduledBookingModel } from "../database/scheduledBookingsModel";
 import AppError from "../utils/appError";
 interface ProcessRefundResult {
   success: boolean;
-  booking?: any; // Replace with the actual booking type if needed
+  booking?: any; 
 }
 
 class PaymentRepository implements IPaymentRepository {
@@ -38,7 +38,7 @@ class PaymentRepository implements IPaymentRepository {
         },
         {
           arrayFilters: [{ "slotElem.date": date }, { "schedElem._id": _id }],
-          new: true, // Return the updated document
+          new: true, 
         }
       );
 
@@ -75,15 +75,12 @@ class PaymentRepository implements IPaymentRepository {
     cancellationReason: string
   ): Promise<{ success: boolean; message?: string }> {
     try {
-      // Fetch the booking by its ID
       const booking = await ScheduledBookingModel.findById(id);
 
-      // Check if the booking exists
       if (!booking) {
         return { success: false, message: "Booking not found." };
       }
 
-      // Ensure that only bookings with status 'Scheduled' can be canceled
       if (booking.status !== "Scheduled") {
         return {
           success: false,
@@ -91,12 +88,10 @@ class PaymentRepository implements IPaymentRepository {
         };
       }
 
-      // Update the booking status and other details
       booking.status = "Cancelled";
       booking.cancellationReason = cancellationReason;
       booking.cancellationDate = new Date();
 
-      // Save the updated booking
       await booking.save();
 
       return { success: true, message: "Booking cancelled successfully." };
@@ -111,11 +106,10 @@ class PaymentRepository implements IPaymentRepository {
 
   async processRefund(id: string): Promise<ProcessRefundResult> {
     try {
-      // Update the booking status to 'Refunded'
       const booking = await ScheduledBookingModel.findByIdAndUpdate(
         id,
         { status: "Refunded" },
-        { new: true } // Return the updated booking
+        { new: true } 
       ).exec();
 
       if (!booking) {

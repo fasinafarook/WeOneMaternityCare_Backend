@@ -64,6 +64,14 @@ const ScheduledBookingSchema = new Schema<ScheduledBooking>(
       type: Date,
       default: null,
     },
+    EmergencyLeaveReason: {
+      type: String,
+      default: "",
+    },
+    EmergencyLeaveDate: {
+      type: Date,
+      default: null,
+    },
     paymentIntentId: { type: String, required: true }, // Add this field
   },
   { timestamps: true }

@@ -130,12 +130,10 @@ class AdminController {
           .status(200)
           .json({ success: true, message: "serviceProvider approved" });
       } else {
-        res
-          .status(400)
-          .json({
-            success: false,
-            message: "Failed to approve serviceProvider",
-          });
+        res.status(400).json({
+          success: false,
+          message: "Failed to approve serviceProvider",
+        });
       }
     } catch (error) {
       next(error);
@@ -159,12 +157,10 @@ class AdminController {
       const { categoryName, subCategories } = req.body;
 
       if (!categoryName.trim()) {
-        return res
-          .status(400)
-          .json({
-            success: false,
-            message: "Categories name should not be empty",
-          });
+        return res.status(400).json({
+          success: false,
+          message: "Categories name should not be empty",
+        });
       }
       if (subCategories.length === 0) {
         return res
@@ -368,15 +364,13 @@ class AdminController {
     }
   }
 
-  async getAllComplaints(req: Request, res: Response,next: NextFunction
-  ) {
+  async getAllComplaints(req: Request, res: Response, next: NextFunction) {
     try {
       const complaints = await this.adminCase.getAllComplaints();
       res.status(200).json(complaints);
     } catch (error) {
-      res.status(500).json({ message: 'Failed to fetch complaints' });
+      res.status(500).json({ message: "Failed to fetch complaints" });
       next(error);
-
     }
   }
 
@@ -384,48 +378,61 @@ class AdminController {
     try {
       const { id } = req.params; // Complaint ID
       const { responseMessage } = req.body; // Response message
-console.log('id',id ,'re',responseMessage);
+      console.log("id", id, "re", responseMessage);
 
       if (!responseMessage) {
-        return res.status(400).json({ success: false, message: 'Response message is required' });
+        return res
+          .status(400)
+          .json({ success: false, message: "Response message is required" });
       }
 
-      const response = await this.adminCase.respondToComplaint(id, responseMessage);
+      const response = await this.adminCase.respondToComplaint(
+        id,
+        responseMessage
+      );
 
       if (response) {
-        return res.status(200).json({ success: true, message: 'Complaint responded successfully' });
+        return res
+          .status(200)
+          .json({ success: true, message: "Complaint responded successfully" });
       } else {
-        return res.status(404).json({ success: false, message: 'Complaint not found' });
+        return res
+          .status(404)
+          .json({ success: false, message: "Complaint not found" });
       }
     } catch (error) {
       next(error);
     }
   }
 
-
-  async getAdminBookingsController(req: Request, res: Response, next: NextFunction) {
+  async getAdminBookingsController(
+    req: Request,
+    res: Response,
+    next: NextFunction
+  ) {
     try {
       const page = parseInt(req.query.page as string) || 1;
       const limit = parseInt(req.query.limit as string) || 10;
-      
-      const bookings = await this.adminCase.getAdminBookingsUseCase(page, limit);
+
+      const bookings = await this.adminCase.getAdminBookingsUseCase(
+        page,
+        limit
+      );
       return res.status(200).json(bookings);
     } catch (error) {
       console.error(error);
       return res.status(500).json({ message: "Failed to get bookings" });
     }
   }
-  
 
   async getDashboardDetails(req: Request, res: Response, next: NextFunction) {
     try {
-      const details = await this.adminCase.getDashboardDetails()
-      return res.status(200).json({success: true, data: details})
+      const details = await this.adminCase.getDashboardDetails();
+      return res.status(200).json({ success: true, data: details });
     } catch (error) {
-      next(error)
+      next(error);
     }
   }
-
 }
 
 export default AdminController;

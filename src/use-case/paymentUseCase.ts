@@ -2,7 +2,6 @@ import AppError from "../infrastructure/utils/appError";
 import IPaymentRepository from "../interfaces/repositories/IPaymentRepoitory";
 import IStripePayment from "../interfaces/utils/IStripPayment";
 import IWalletRepository from "../interfaces/repositories/IWalletRepository";
-// import Payment from "../infrastructure/database/paymentModel";  // Adjust the path as needed
 import { ScheduledBookingModel } from "../infrastructure/database/scheduledBookingsModel";
 import { ProviderSlotModel } from "../infrastructure/database/providerSlotModel";
 
@@ -56,15 +55,15 @@ class PaymentUseCase {
       title,
       description,
       roomId,
-      paymentIntentId, // Pass paymentIntentId
+      paymentIntentId, 
     });
-    const type = "credit";
-    const wallet = await this.walletRepository.updateWallet(
-      serviceProviderId,
-      price,
-      type
-    );
-    console.log("WALLET: ", wallet);
+    // const type = "credit";
+    // const wallet = await this.walletRepository.updateWallet(
+    //   serviceProviderId,
+    //   price,
+    //   type
+    // );
+    // console.log("WALLET: ", wallet);
   }
 
   async cancelBooking(
@@ -79,7 +78,6 @@ class PaymentUseCase {
       return { success: false, message: "Cancellation reason is required." };
     }
 
-    // Delegate the cancellation logic to the repository
     return this.paymentRepository.cancelBooking(id, cancellationReason);
   }
 
@@ -115,12 +113,12 @@ class PaymentUseCase {
       throw new AppError("Failed to update booking status.", 500);
     }
 
-    await this.walletRepository.updateWallet(booking.userId, price, "credit");
-    await this.walletRepository.updateWallet(
-      booking.serviceProviderId,
-      price,
-      "debit"
-    );
+    // await this.walletRepository.updateWallet(booking.userId, price, "credit");
+    // await this.walletRepository.updateWallet(
+    //   booking.serviceProviderId,
+    //   price,
+    //   "debit"
+    // );
 
     await ProviderSlotModel.updateOne(
       {

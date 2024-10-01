@@ -34,7 +34,7 @@ class UserController {
       const response = await this.userCase.findUser(userInfo);
 
       if (response?.status === 200) {
-        throw new AppError("User already exists", 400);
+        throw new AppError("Email already in use. Please log in or choose another", 400);
       }
 
       if (response?.status === 201) {
@@ -42,7 +42,10 @@ class UserController {
         return res.status(201).json({ success: true, token });
       }
     } catch (error) {
-      next(error);
+      if (error instanceof AppError) {
+        return res.status(error.statusCode).json({ success: false, message: error.message });
+      }
+     return res.status(500).json({ success: false, message: "Internal server error" });
     }
   }
 
@@ -58,7 +61,7 @@ class UserController {
 
       const response = await this.userCase.findUser(userInfo);
       if (response?.status === 200) {
-        throw new AppError("User already exists", 400);
+        throw new AppError("Email already in use. Please log in or choose another", 400);
       }
 
       if (response?.status === 201) {
@@ -79,13 +82,11 @@ class UserController {
 
       if (saveUser.success) {
         res.cookie("userToken", saveUser.token);
-        return res
-          .status(200)
-          .json({
-            success: true,
-            token: saveUser.token,
-            message: "OTP verified",
-          });
+        return res.status(200).json({
+          success: true,
+          token: saveUser.token,
+          message: "OTP verified",
+        });
       } else {
         res.status(400).json({ success: false, message: "OTP not verified" });
       }
@@ -125,10 +126,8 @@ class UserController {
     }
   }
 
-
   async home(req: Request, res: Response, next: NextFunction) {
     try {
-     
       const welcomeMessage = "Welcome to the home page!";
 
       return res
@@ -159,27 +158,24 @@ class UserController {
     }
   }
 
-async editProfile(req: Request, res: Response, next: NextFunction) {
-  try {
-    const { name, mobile } = req.body;
-    console.log('Received data:', name, mobile); // Debug log
+  async editProfile(req: Request, res: Response, next: NextFunction) {
+    try {
+      const { name, mobile } = req.body;
+      console.log("Received data:", name, mobile);
 
-    // Check if userId is properly injected by middleware
-    const userId = req.userId;
-    if (!userId) throw new AppError("User ID not found", 400);
+      const userId = req.userId;
+      if (!userId) throw new AppError("User ID not found", 400);
 
-    // Call service to update profile
-    await this.userCase.editProfile(userId, name, mobile);
+      await this.userCase.editProfile(userId, name, mobile);
 
-    return res.status(200).send({
-      success: true,
-      message: "Profile updated successfully",
-    });
-  } catch (error) {
-    next(error);
+      return res.status(200).send({
+        success: true,
+        message: "Profile updated successfully",
+      });
+    } catch (error) {
+      next(error);
+    }
   }
-}
-
 
   async editPassword(req: Request, res: Response, next: NextFunction) {
     try {
@@ -204,7 +200,7 @@ async editProfile(req: Request, res: Response, next: NextFunction) {
       const providers = await this.userCase.getApprovedAndUnblockedProviders();
       res.json(providers);
     } catch (error) {
-      next(error); // Pass error to the next middleware
+      next(error);
     }
   }
 
@@ -240,7 +236,6 @@ async editProfile(req: Request, res: Response, next: NextFunction) {
       if (!serviceProviderId)
         throw new AppError("Service provider ID is required", 400);
 
-      // Fetch details based on serviceProviderId
       const details = await this.userCase.getProviderSlotDetails(
         serviceProviderId
       );
@@ -318,42 +313,35 @@ async editProfile(req: Request, res: Response, next: NextFunction) {
     }
   }
 
+  async fileComplaint(req: Request, res: Response): Promise<void> {
+    try {
+      console.log("re", req.body);
 
+      const { userId, subject, message } = req.body;
 
+      if (!userId || !subject || !message) {
+        res.status(400).json({ error: "Missing required fields" });
+        return;
+      }
 
- // In your controller file
-async fileComplaint(req: Request, res: Response): Promise<void> {
-  try {
-    console.log('re',req.body);
-    
-    const { userId, subject, message } = req.body;
-    
-    // Validate request body
-    if (!userId || !subject || !message) {
-      res.status(400).json({ error: 'Missing required fields' });
-      return;
+      // Create a complaint object
+      const complaint = {
+        userId,
+        subject,
+        message,
+        isResolved: false,
+        createdAt: new Date(),
+        updatedAt: new Date(),
+      };
+
+      const result = await this.userCase.fileComplaint(complaint);
+
+      res.status(201).json(result);
+    } catch (error) {
+      console.error("Error filing complaint:", error);
+      res.status(500).json({ error: "Failed to file complaint" });
     }
-
-    // Create a complaint object
-    const complaint = {
-      userId,
-      subject,
-      message,
-      isResolved: false,
-      createdAt: new Date(),
-      updatedAt: new Date()
-    };
-
-    // Call a service or use case to handle the complaint
-    const result = await this.userCase.fileComplaint(complaint);
-
-    res.status(201).json(result);
-  } catch (error) {
-    console.error('Error filing complaint:', error); // Log the error for debugging
-    res.status(500).json({ error: 'Failed to file complaint' });
   }
-}
-
 
   async getUserComplaints(req: Request, res: Response): Promise<void> {
     try {
@@ -361,50 +349,48 @@ async fileComplaint(req: Request, res: Response): Promise<void> {
       const complaints = await this.userCase.getUserComplaints(userId);
       res.status(200).json(complaints);
     } catch (error) {
-      res.status(500).json({ error: 'Failed to get complaints' });
+      res.status(500).json({ error: "Failed to get complaints" });
     }
   }
 
-  async  getUsersForSidebar(req: Request, res: Response): Promise<void> {
+  async getUsersForSidebar(req: Request, res: Response): Promise<void> {
     try {
       const loggedInUserId = req.userId;
-  
-      // Find users with at least one completed booking, excluding the logged-in user
+
       const completedBookingUsers = await ScheduledBookingModel.find({
         status: "Completed",
         userId: { $ne: loggedInUserId },
-      }).distinct("userId"); // Get distinct userIds who have completed bookings
-  
+      }).distinct("userId");
+
       // Fetch user details, excluding password, and only for users with completed bookings
       const filteredUsers = await users
         .find({ _id: { $in: completedBookingUsers } })
         .select("-password");
-  
+
       res.status(200).json(filteredUsers);
     } catch (error: any) {
       console.error("Error in getUsersForSidebar:", error.message);
       res.status(500).json({ error: "Internal server error" });
     }
   }
-  
 
+  async getCompletedBookings(req: Request, res: Response) {
+    const userId = req.params.userId;
+    console.log("idhead:", userId);
 
- async getCompletedBookings (req: Request, res: Response)  {
-    const userId = req.params.userId; // Assuming userId is passed as a param
-    console.log('idhead:',userId);
-    
-  
     try {
       const completedBookings = await ScheduledBookingModel.find({
         userId: userId,
         status: "Completed",
       });
-  console.log('cm',completedBookings);
-  
+      console.log("cm", completedBookings);
+
       if (!completedBookings.length) {
-        return res.status(404).json({ success: false, message: "No completed bookings found" });
+        return res
+          .status(404)
+          .json({ success: false, message: "No completed bookings found" });
       }
-  
+
       return res.status(200).json({
         success: true,
         data: completedBookings,
@@ -415,35 +401,36 @@ async fileComplaint(req: Request, res: Response): Promise<void> {
     }
   }
 
-
   async forgotPassword(req: Request, res: Response, next: NextFunction) {
     try {
-      const {email} = req.body
-      console.log(email)
-      const token = await this.userCase.passwordReset(email)
+      const { email } = req.body;
+      console.log(email);
+      const token = await this.userCase.passwordReset(email);
       if (!token) {
-        return res.status(404).json({ success: false, message: "User not found" });
+        return res
+          .status(404)
+          .json({ success: false, message: "User not found" });
       }
-      return res.status(200).json({success: true, data: token})
+      return res.status(200).json({ success: true, data: token });
     } catch (error) {
-      next(error)
+      next(error);
     }
   }
 
   async resetPassword(req: Request, res: Response, next: NextFunction) {
     try {
-      const token = req.headers.authorization?.split(' ')[1] as string;
-      if(!token) throw new AppError("Unauthorised user", 401);
+      const token = req.headers.authorization?.split(" ")[1] as string;
+      if (!token) throw new AppError("Unauthorised user", 401);
 
-      const {otp, password} = req.body
-      await this.userCase.resetPassword(otp, password, token)
-      return res.status(201).json({success: true, message: "Password changed successfully"})
-      
+      const { otp, password } = req.body;
+      await this.userCase.resetPassword(otp, password, token);
+      return res
+        .status(201)
+        .json({ success: true, message: "Password changed successfully" });
     } catch (error) {
-      next(error)
+      next(error);
     }
   }
-
 }
 
 export default UserController;

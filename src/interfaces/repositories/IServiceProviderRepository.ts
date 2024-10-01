@@ -23,6 +23,8 @@ interface IServiceProviderRepository {
     updateStatus(bookingId: string, status: string): Promise<any>;
     editProfile(serviceProviderId: string, details: ServiceProvider): Promise<void>
     getDashboardStats(providerId: string): Promise<any>;
+    findBookingById(bookingId: string): Promise<any>;
+    cancelBooking(bookingId: string, cancelReason: string): Promise<any>;
 
 
 

@@ -21,9 +21,7 @@ import WebinarModel from "../database/webinarModel";
 import { IWebinar } from "../../domain/entities/webinars";
 import webinarModel from "../database/webinarModel";
 
-
 import { Complaint } from "../database/complaints";
-
 
 import ScheduledBooking from "../../domain/entities/scheduledBookings";
 import { ScheduledBookingModel } from "../database/scheduledBookingsModel";
@@ -158,7 +156,6 @@ class AdminRepository implements IAdminRepository {
   }
 
   async addBlog(blogData: Partial<IBlog>): Promise<IBlog> {
- 
     const blog = new BlogModel(blogData);
     console.log("blog", blog);
 
@@ -178,21 +175,7 @@ class AdminRepository implements IAdminRepository {
     return { blogs, total };
   }
 
-  // async unlistBlog(blogId: string): Promise<IBlog | null> {
-  //   const blog = await BlogModel.findById(blogId);
-
-  //   if (!blog) throw new AppError("blog not found", 404);
-  //   const unlistBlog = await BlogModel.findByIdAndUpdate(
-  //     blogId,
-  //     { isListed: !blog.isListed },
-  //     { new: true }
-  //   );
-  //   if (!unlistBlog) {
-  //     throw new AppError("Failed to unlist blog", 500);
-  //   }
-  //   return unlistBlog;
-  // }
-
+ 
   async unlistBlog(blogId: string) {
     if (!blogId) {
       throw new Error("Blog ID is required");
@@ -203,7 +186,7 @@ class AdminRepository implements IAdminRepository {
       throw new Error("Blog not found");
     }
 
-    blog.isListed = false; // Example logic for unlisting
+    blog.isListed = false; 
     return await blog.save();
   }
 
@@ -231,8 +214,7 @@ class AdminRepository implements IAdminRepository {
   }
 
   async listWebinars(): Promise<IWebinar[]> {
-    return await WebinarModel.find({})
-    .sort({ createdAt: -1 });
+    return await WebinarModel.find({}).sort({ createdAt: -1 });
   }
 
   async unlistWebinar(webinarId: string): Promise<IWebinar | null> {
@@ -252,12 +234,15 @@ class AdminRepository implements IAdminRepository {
     return webinar;
   }
   async getAllComplaints(): Promise<any[]> {
-    return await Complaint.find(); // Fetch all complaints from the database
+    return await Complaint.find(); 
   }
 
-  async respondToComplaint(id: string, responseMessage: string): Promise<boolean> {
+  async respondToComplaint(
+    id: string,
+    responseMessage: string
+  ): Promise<boolean> {
     try {
-      const complaint = await Complaint.findById(id).sort({createdAt:-1});
+      const complaint = await Complaint.findById(id).sort({ createdAt: -1 });
 
       if (!complaint) {
         return false;
@@ -269,71 +254,76 @@ class AdminRepository implements IAdminRepository {
 
       return true;
     } catch (error) {
-      console.error('Error responding to complaint:', error);
+      console.error("Error responding to complaint:", error);
       return false;
     }
   }
 
-
-  async getAllBookings(page: number, limit: number): Promise<ScheduledBooking[]> {
+  async getAllBookings(
+    page: number,
+    limit: number
+  ): Promise<ScheduledBooking[]> {
     try {
       const skip = (page - 1) * limit;
       const bookings = await ScheduledBookingModel.find()
         .populate({
-          path: 'serviceProviderId',
-          select: 'name',
+          path: "serviceProviderId",
+          select: "name",
         })
         .populate({
-          path: 'userId',
-          select: 'name',
+          path: "userId",
+          select: "name",
         })
         .sort({ createdAt: -1 })
-        .skip(skip)  // Skip based on the page number
-        .limit(limit) // Limit the number of bookings returned
+        .skip(skip) 
+        .limit(limit) 
         .exec();
-  
+
       return bookings;
     } catch (error) {
-      console.error('Error fetching bookings:', error);
-      throw new Error('Failed to fetch bookings');
+      console.error("Error fetching bookings:", error);
+      throw new Error("Failed to fetch bookings");
     }
   }
 
+  async dashboardDetails(): Promise<any> {
+    const providersCount = await serviceProviderModel.countDocuments();
+    const usersCount = await users.countDocuments();
 
+    const bookings = await ScheduledBookingModel.aggregate([
+      {
+        $group: { _id: "$status", total: { $sum: 1 } },
+      },
+    ]);
 
- async  dashboardDetails(): Promise<any> {
-  const providersCount = await serviceProviderModel.countDocuments();
-  const usersCount = await users.countDocuments();
-  
-  const bookings = await ScheduledBookingModel.aggregate([
-    {
-      $group: { _id: "$status", total: { $sum: 1 } },
-    },
-  ]);
+    const bookingsCount = {
+      completed: 0,
+      scheduled: 0,
+      cancelled: 0,
+      refunded: 0,
+    };
 
-  const bookingsCount = { completed: 0, scheduled: 0, cancelled: 0, refunded: 0 };
+    bookings.forEach((int) => {
+      if (int._id === "Completed") {
+        bookingsCount.completed = int.total;
+      } else if (int._id === "Scheduled") {
+        bookingsCount.scheduled = int.total;
+      } else if (int._id === "Cancelled") {
+        bookingsCount.cancelled = int.total;
+      } else if (int._id === "Refunded") {
+        bookingsCount.refunded = int.total;
+      }
+    });
 
-  bookings.forEach(int => {
-    if (int._id === "Completed") {
-      bookingsCount.completed = int.total;
-    } else if (int._id === "Scheduled") {
-      bookingsCount.scheduled = int.total;
-    } else if (int._id === "Cancelled") {
-      bookingsCount.cancelled = int.total;
-    } else if (int._id === "Refunded") {
-      bookingsCount.refunded = int.total;
-    }
-  });
+    const scheduledBookings = await ScheduledBookingModel.find();
 
-  const scheduledBookings = await ScheduledBookingModel.find();
-
-  return {
-    providersCount,
-    usersCount,
-    bookingsCount,
-    scheduledBookings,
-  };
-}
+    return {
+      providersCount,
+      usersCount,
+      bookingsCount,
+      scheduledBookings,
+    };
+  }
 }
 
 export default AdminRepository;
