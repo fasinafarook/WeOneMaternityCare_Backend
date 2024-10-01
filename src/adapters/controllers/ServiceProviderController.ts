@@ -3,9 +3,8 @@ import ServiceProviderUseCase from "../../use-case/ServiceProviderUse-case";
 import path from "path";
 import fs from "fs";
 import AppError from "../../infrastructure/utils/appError";
-import mongoose from "mongoose";
 import ProviderSlot from "../../domain/entities/providerSlot";
-import { ProviderSlotModel } from "../../infrastructure/database/providerSlotModel";
+import MailService from "../../infrastructure/utils/mailService";
 
 interface Service {
   value: string;
@@ -13,7 +12,8 @@ interface Service {
 }
 
 class ServiceProviderController {
-  constructor(private serviceProviderCase: ServiceProviderUseCase) {}
+  constructor(private serviceProviderCase: ServiceProviderUseCase) {        this.emergencycancelBooking = this.emergencycancelBooking.bind(this);
+  }
 
   async verifyServiceProviderEmail(
     req: Request,
@@ -47,7 +47,7 @@ class ServiceProviderController {
         serviceProviderInfo
       );
       if (response?.status === 200) {
-        throw new AppError("User already exists", 400);
+        throw new AppError("Email already in use. Please log in or choose another", 400);
       }
 
       if (response?.status === 201) {
@@ -129,7 +129,7 @@ class ServiceProviderController {
   }
 
   async verifyDetails(req: Request, res: Response, next: NextFunction) {
-    console.log("hlo",);
+    console.log("hlo");
 
     try {
       const {
@@ -233,29 +233,21 @@ class ServiceProviderController {
 
   async addProviderSlot(req: Request, res: Response, next: NextFunction) {
     try {
-      const {
-        date,
-        description,
-        timeFrom,
-        timeTo,
-        title,
-        price,
-        services,
-      } = req.body.slotData;
+      const { date, description, timeFrom, timeTo, title, price, services } =
+        req.body.slotData;
       const Srvc: string[] = (services as Service[]).map(
         (option: Service) => option.value
       );
       const serviceProviderId = req.serviceProviderId;
-  
+
       if (!serviceProviderId) {
         throw new AppError("Unauthorized user", 401);
       }
-  
+
       const slotData: ProviderSlot = {
         serviceProviderId,
         slots: [
           {
-            
             date: new Date(date),
             schedule: [
               {
@@ -271,7 +263,7 @@ class ServiceProviderController {
           },
         ],
       };
-  
+
       const slotAdded = await this.serviceProviderCase.addSlot(slotData);
       return res.status(201).json({
         success: true,
@@ -279,18 +271,19 @@ class ServiceProviderController {
         message: "Slot added successfully",
       });
     } catch (error) {
-      console.error('Error adding slot:', error);
+      console.error("Error adding slot:", error);
       if (error instanceof AppError) {
-        // Make sure you're sending the error status and message properly
-        return res.status(error.statusCode).json({ success: false, message: error.message });
+        return res
+          .status(error.statusCode)
+          .json({ success: false, message: error.message });
       } else {
-        // Handle generic errors
-        return res.status(500).json({ success: false, message: 'Internal server error' });
+        return res
+          .status(500)
+          .json({ success: false, message: "Internal server error" });
       }
     }
-    
   }
-  
+
   async getProviderSlots(req: Request, res: Response, next: NextFunction) {
     try {
       const page = req.query.page ? parseInt(req.query.page as string) : 1;
@@ -388,24 +381,26 @@ class ServiceProviderController {
     }
   }
 
-
-  async updateBookingStatus(req: Request, res: Response,next: NextFunction) {
+  async updateBookingStatus(req: Request, res: Response, next: NextFunction) {
     try {
       const { bookingId } = req.params;
       const { status } = req.body;
       console.log("Request:", bookingId, status);
-      const updatedBooking = await this.serviceProviderCase.updateBookingStatus(bookingId, status);
+      const updatedBooking = await this.serviceProviderCase.updateBookingStatus(
+        bookingId,
+        status
+      );
       if (!updatedBooking) {
-        return res.status(404).json({ message: 'Booking not found' });
+        return res.status(404).json({ message: "Booking not found" });
       }
       res.status(200).json(updatedBooking);
     } catch (error) {
-      console.error('Error updating booking status:', error);
-      res.status(500).json({ message: 'Failed to update booking status', error });
+      console.error("Error updating booking status:", error);
+      res
+        .status(500)
+        .json({ message: "Failed to update booking status", error });
     }
   }
-  
-
 
   async forgotPassword(req: Request, res: Response, next: NextFunction) {
     try {
@@ -438,73 +433,108 @@ class ServiceProviderController {
     }
   }
 
-
-
-  
-async editSlot(req: Request, res: Response, next: NextFunction) {
-  try {
-    const { slotId } = req.params;
-    const updatedSlotData = req.body;
-    const result = await this.serviceProviderCase.editSlot(slotId, updatedSlotData);
-    res.status(200).json({ message: "Slot updated successfully", updatedSlot: result });
-  } catch (error) {
-    console.error('Error updating slot:', error);
-    if (error instanceof AppError) {
-      // Pass specific error message to frontend
-      res.status(error.statusCode).json({ message: error.message });
-    } else {
-      next(new AppError('Error updating slot', 500));
+  async editSlot(req: Request, res: Response, next: NextFunction) {
+    try {
+      const { slotId } = req.params;
+      const updatedSlotData = req.body;
+      const result = await this.serviceProviderCase.editSlot(
+        slotId,
+        updatedSlotData
+      );
+      res
+        .status(200)
+        .json({ message: "Slot updated successfully", updatedSlot: result });
+    } catch (error) {
+      console.error("Error updating slot:", error);
+      if (error instanceof AppError) {
+        res.status(error.statusCode).json({ message: error.message });
+      } else {
+        next(new AppError("Error updating slot", 500));
+      }
     }
   }
-}
-  
+
   async editProfile(req: Request, res: Response, next: NextFunction) {
     try {
-      console.log(req.body)
-      const {details} = req.body;
+      console.log(req.body);
+      const { details } = req.body;
       const serviceProviderId = req.serviceProviderId;
-      if(!serviceProviderId) throw new AppError("Interviewer id not found", 400);
+      if (!serviceProviderId)
+        throw new AppError("Interviewer id not found", 400);
       if (!details) throw new AppError("Details not provided", 400);
 
-      await this.serviceProviderCase.editProfile(serviceProviderId, details)
-      return res.status(200).json({success: true, message: "Profile updated successfully"})
-
+      await this.serviceProviderCase.editProfile(serviceProviderId, details);
+      return res
+        .status(200)
+        .json({ success: true, message: "Profile updated successfully" });
     } catch (error) {
-      next(error)
+      next(error);
     }
   }
-
 
   async editPassword(req: Request, res: Response, next: NextFunction) {
     try {
       const serviceProviderId = req.serviceProviderId;
-      const {currentPassword, newPassword} = req.body
-      if(!serviceProviderId) throw new AppError("interviewer id not found", 400);
-      await this.serviceProviderCase.editPassword(serviceProviderId, currentPassword,  newPassword)
-      return res.status(200).send({success: true, message: "Password changed successfully"})
+      const { currentPassword, newPassword } = req.body;
+      if (!serviceProviderId)
+        throw new AppError("interviewer id not found", 400);
+      await this.serviceProviderCase.editPassword(
+        serviceProviderId,
+        currentPassword,
+        newPassword
+      );
+      return res
+        .status(200)
+        .send({ success: true, message: "Password changed successfully" });
     } catch (error) {
-      next(error)
+      next(error);
     }
   }
 
   async getProviderDashboard(req: Request, res: Response, next: NextFunction) {
-
     try {
-      
       const providerId = req.serviceProviderId;
-  
-      // Check if providerId exists
+
       if (!providerId) {
-        return res.status(400).json({ message: 'Service provider ID is missing' });
+        return res
+          .status(400)
+          .json({ message: "Service provider ID is missing" });
       }
-  
-      const dashboardData = await this.serviceProviderCase.getProviderDashboardData(providerId);
+
+      const dashboardData =
+        await this.serviceProviderCase.getProviderDashboardData(providerId);
       return res.status(200).json(dashboardData);
     } catch (error) {
-      return res.status(500).json({ message: 'Failed to get dashboard data', error });
+      return res
+        .status(500)
+        .json({ message: "Failed to get dashboard data", error });
     }
   }
-  
+
+  async emergencycancelBooking (req: Request, res: Response)  {
+    try {
+        const { bookingId } = req.params;
+        const { cancelReason } = req.body;
+        
+        console.log('bbbbb', bookingId, cancelReason);
+        console.log('About to call cancelBookingUseCase');
+        
+        const result = await this.serviceProviderCase.cancelBookingUseCase(bookingId, cancelReason);
+        
+        const mailService = new MailService();
+        await mailService.sendLeaveMail(
+            result.user.name,
+            result.user.email,
+            cancelReason
+        );
+        
+        return res.status(200).json({ message: 'Booking canceled successfully', result });
+    } catch (error) {
+        console.log('Error in EmergencycancelBooking:', error);
+        return res.status(500).json({ message: 'Cancellation failed', error });
+    }
+};
+
 }
 
 export default ServiceProviderController;

@@ -86,7 +86,6 @@ async editProfile(userId: string, name: string, mobile: number) {
 
 
   async getProviderSlotDetails(serviceProviderId: string): Promise<any> {
-    // Fetch basic information about the service provider
     const providerDetails = await serviceProviderModel.findById(serviceProviderId, {
       name: 1,
       location: 1,
@@ -99,7 +98,6 @@ async editProfile(userId: string, name: string, mobile: number) {
     const startOfToday = new Date(currentDate.setHours(0, 0, 0, 0));
     const endOfToday = new Date(currentDate.setHours(23, 59, 59, 999));
   
-    // Fetch slots for the service provider
     const bookingSlotDetails = await ProviderSlotModel.aggregate([
       {
         $match: { serviceProviderId: serviceProviderId },
@@ -119,14 +117,14 @@ async editProfile(userId: string, name: string, mobile: number) {
             {
               $and: [
                 { "slots.date": { $gte: startOfToday, $lte: endOfToday } },
-                { "slots.schedule.from": { $gte: new Date() } }, // Check for upcoming time slots today
+                { "slots.schedule.from": { $gte: new Date() } }, 
               ],
             },
           ],
         },
       },
       {
-        $sort: { "slots.date": 1, "slots.schedule.from": 1 }, // Sort by date and time
+        $sort: { "slots.date": 1, "slots.schedule.from": 1 }, 
       },
     ]);
   
@@ -151,7 +149,7 @@ async editProfile(userId: string, name: string, mobile: number) {
         },
         {
           arrayFilters: [{ "slotElem.date": date }, { "schedElem._id": _id }],
-          new: true, // Return the updated document
+          new: true, 
         }
       );
 
@@ -202,7 +200,7 @@ async editProfile(userId: string, name: string, mobile: number) {
       },
       {
         $lookup: {
-          from: "serviceProviders", // Ensure this matches your service providers collection name
+          from: "serviceProviders", 
           let: { serviceProviderId: { $toObjectId: "$serviceProviderId" } },
           pipeline: [
             {
@@ -211,7 +209,7 @@ async editProfile(userId: string, name: string, mobile: number) {
               },
             },
           ],
-          as: "serviceProvider", // Changed to correctly reflect that this lookup is for service providers
+          as: "serviceProvider", 
         },
       },
       { $unwind: "$serviceProvider" },

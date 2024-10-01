@@ -17,20 +17,3 @@ router.get("/:id", userAuth, (req, res, next) => messageController.getMessages(r
 
 export default router;
 
-
-// import express from "express";
-// const messageRouter = express.Router();
-// import { sendMessage ,getMessages} from "../../adapters/controllers/messageController";
-
-// import userAuth from "../middlewares/userAuth";
-
-
-
-// messageRouter.get("/:id",userAuth,getMessages)
-
-// messageRouter.post("/send/:id",userAuth,sendMessage)
-
-
-// export default messageRouter;
-
-

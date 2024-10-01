@@ -8,7 +8,7 @@ import { ProviderSlotModel } from "../database/providerSlotModel";
 import ScheduledBooking from "../../domain/entities/scheduledBookings";
 import { ScheduledBookingModel } from "../database/scheduledBookingsModel";
 import { WalletModel } from "../database/walletModel";
-
+import users from "../database/userModel";
 
 import ProviderSlot, {
   Slot,
@@ -62,7 +62,6 @@ class ServiceProviderRepository implements IServiceProviderRepository {
   }
 
   async getAllCategories(): Promise<string[]> {
-    // Fetch categories and return an array of category names
     const categories = await CategoryModel.find({ isListed: true }).select("categoryName");
     return categories.map((category) => category.categoryName);
   }
@@ -152,7 +151,6 @@ class ServiceProviderRepository implements IServiceProviderRepository {
       },
     ];
 
-    // console.log(await ProviderSlotModel.aggregate(pipeline));
 
     if (searchQuery) {
       pipeline.push({
@@ -344,10 +342,45 @@ class ServiceProviderRepository implements IServiceProviderRepository {
       canceledBookings,
       refundedBookings,
       totalRevenue,
-      bookings, // Include the bookings array for the frontend chart
+      bookings, 
     };
   }
   
+
+  async findBookingById(bookingId: string): Promise<any> {
+    console.log('Inside findBookingById:', bookingId);
+    
+    const booking = await ScheduledBookingModel.findById(bookingId);
+    console.log('Booking retrieved:', booking);
+    return booking;
+}
+
+async cancelBooking(bookingId: string, cancelReason: string): Promise<any> {
+  console.log('Inside cancelBooking:', bookingId, cancelReason);
+
+  const booking = await ScheduledBookingModel.findById(bookingId);
+  if (!booking) {
+      console.log('Booking not found during cancellation');
+      throw new Error("Booking not found");
+  }
+
+  booking.status = "Refunded";
+  booking.EmergencyLeaveReason = cancelReason;
+  booking.EmergencyLeaveDate = new Date();
+
+  await booking.save();
+  const user = await users.findById(booking.userId);
+    if (!user) throw new Error("User not found"); // Ensure user exists
+
+    // Return both the cancelled booking and the user details
+    return {
+        booking,
+        user: {
+            name: user.name,
+            email: user.email
+        }
+    };
+};
 
 }
 export default ServiceProviderRepository;

@@ -50,7 +50,6 @@ serviceProvider.post("/resend-otp", (req, res, next) =>
   controller.resendOtp(req, res, next)
 );
 
-// router.post('/logout', (req, res, next) => controller.logout(req, res, next))
 
 serviceProvider.post(
   "/verify-details",
@@ -101,25 +100,39 @@ serviceProvider.get(
   (req, res, next) => controller.getPaymentDashboard(req, res, next)
 );
 
+serviceProvider.put(
+  "/edit-slot/:slotId",
+  serviceProviderAuth,
+  (req, res, next) => controller.editSlot(req, res, next)
+);
 
+serviceProvider.put(
+  "/update-booking-status/:bookingId",
+  serviceProviderAuth,
+  (req, res, next) => controller.updateBookingStatus(req, res, next)
+);
 
-  serviceProvider.put('/edit-slot/:slotId', serviceProviderAuth,
-    (req, res, next) => controller.editSlot(req, res, next));
+serviceProvider.post("/forgot-password", (req, res, next) =>
+  controller.forgotPassword(req, res, next)
+);
 
-    serviceProvider.put('/update-booking-status/:bookingId',serviceProviderAuth,
-    (req, res, next) => controller.updateBookingStatus(req, res, next));
+serviceProvider.post("/reset-password", (req, res, next) =>
+  controller.resetPassword(req, res, next)
+);
 
+serviceProvider.put("/edit-profile", serviceProviderAuth, (req, res, next) =>
+  controller.editProfile(req, res, next)
+);
 
-    serviceProvider.post('/forgot-password', (req, res, next) => controller.forgotPassword(req, res, next))
-       
+serviceProvider.put("/edit-password", serviceProviderAuth, (req, res, next) =>
+  controller.editPassword(req, res, next)
+);
 
-    serviceProvider.post('/reset-password', (req, res, next) => controller.resetPassword(req, res, next))
+serviceProvider.get("/dashboard", serviceProviderAuth, (req, res, next) =>
+  controller.getProviderDashboard(req, res, next)
+);
 
-    serviceProvider.put('/edit-profile', serviceProviderAuth, (req, res, next) => controller.editProfile(req, res, next))
-
-    serviceProvider.put('/edit-password', serviceProviderAuth, (req, res, next) => controller.editPassword(req, res, next))
- 
-    serviceProvider.get('/dashboard', serviceProviderAuth, (req, res, next) => controller.getProviderDashboard(req, res, next))
+serviceProvider.post('/notify-leave/:bookingId',serviceProviderAuth, controller.emergencycancelBooking);
 
 
 export default serviceProvider;

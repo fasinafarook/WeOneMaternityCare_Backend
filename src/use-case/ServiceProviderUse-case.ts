@@ -260,80 +260,88 @@ class ServiceProviderUseCase {
     return details;
   }
 
- 
-
   async editSlot(slotId: string, updatedSlotData: any) {
-    const providerSlot = await this.iServiceProviderRepository.findProviderSlot(slotId);
-  
+    const providerSlot = await this.iServiceProviderRepository.findProviderSlot(
+      slotId
+    );
+
     if (!providerSlot) {
-      throw new AppError('Slot not found in any provider', 404);
+      throw new AppError("Slot not found in any provider", 404);
     }
-  
-    const slotIndex = providerSlot.slots.findIndex((s: any) => s._id.toString() === slotId);
-  
+
+    const slotIndex = providerSlot.slots.findIndex(
+      (s: any) => s._id.toString() === slotId
+    );
+
     if (slotIndex === -1) {
-      throw new AppError('Slot not found', 404);
+      throw new AppError("Slot not found", 404);
     }
-  
+
     const newFrom = new Date(updatedSlotData.from);
     const newTo = new Date(updatedSlotData.to);
-    const slotDate = newFrom.toISOString().split('T')[0];
-  
-    const isDuplicateTimeOnSameDay = providerSlot.slots.some((slot: any, index: number) => {
-      if (index !== slotIndex) {
-        return slot.schedule.some((schedule: any) => {
-          const existingFrom = new Date(schedule.from);
-          const existingTo = new Date(schedule.to);
-          const existingDate = existingFrom.toISOString().split('T')[0];
-  
-          if (existingDate === slotDate) {
-            const isOverlapping =
-              (newFrom <= existingTo && newTo >= existingFrom) || 
-              (newFrom >= existingFrom && newFrom < existingTo) || 
-              (newTo > existingFrom && newTo <= existingTo) ||   
-              (newFrom <= existingFrom && newTo >= existingTo);    
-            return isOverlapping;
-          }
-  
-          return false;
-        });
+    const slotDate = newFrom.toISOString().split("T")[0];
+
+    const isDuplicateTimeOnSameDay = providerSlot.slots.some(
+      (slot: any, index: number) => {
+        if (index !== slotIndex) {
+          return slot.schedule.some((schedule: any) => {
+            const existingFrom = new Date(schedule.from);
+            const existingTo = new Date(schedule.to);
+            const existingDate = existingFrom.toISOString().split("T")[0];
+
+            if (existingDate === slotDate) {
+              const isOverlapping =
+                (newFrom <= existingTo && newTo >= existingFrom) ||
+                (newFrom >= existingFrom && newFrom < existingTo) ||
+                (newTo > existingFrom && newTo <= existingTo) ||
+                (newFrom <= existingFrom && newTo >= existingTo);
+              return isOverlapping;
+            }
+
+            return false;
+          });
+        }
+        return false;
       }
-      return false;
-    });
-  
+    );
+
     if (isDuplicateTimeOnSameDay) {
       throw new AppError("Slot time already exists on the same date", 400);
     }
-  
+
     const updatedSlot = providerSlot.slots[slotIndex];
     updatedSlot.schedule.forEach((schedule: any) => {
       schedule.from = updatedSlotData.from || schedule.from;
       schedule.to = updatedSlotData.to || schedule.to;
       schedule.price = updatedSlotData.price || schedule.price;
       schedule.services = updatedSlotData.services || schedule.services;
-      schedule.description = updatedSlotData.description || schedule.description;
+      schedule.description =
+        updatedSlotData.description || schedule.description;
       schedule.status = updatedSlotData.status || schedule.status;
     });
-  
+
     await this.iServiceProviderRepository.saveProviderSlots(providerSlot);
     return updatedSlot;
   }
-  
 
   async passwordReset(email: string) {
     try {
-      const candidate = await this.iServiceProviderRepository.findByEmail(email);
+      const candidate = await this.iServiceProviderRepository.findByEmail(
+        email
+      );
       if (!candidate) {
-        return null
+        return null;
       }
       const { name } = candidate;
       const otp = this.otpGenerate.generateOtp();
-      const hashedOtp = await this.hashPassword.hash(otp)
-      console.log("FORGOT PASSWORD OTP: ", otp)
-      const token = this.jwtToken.otpToken({ userId: candidate._id }, hashedOtp);
+      const hashedOtp = await this.hashPassword.hash(otp);
+      console.log("FORGOT PASSWORD OTP: ", otp);
+      const token = this.jwtToken.otpToken(
+        { userId: candidate._id },
+        hashedOtp
+      );
 
       await this.mailService.sendMail(name, email, otp);
-
 
       return token;
     } catch (error) {
@@ -342,56 +350,104 @@ class ServiceProviderUseCase {
   }
 
   async resetPassword(UserOtp: string, password: string, token: any) {
-    const decodedToken = this.jwtToken.verifyJwtToken(token) as DecodedToken
-    const {otp, info}  = decodedToken
-    const {userId} = info
-    
-    const isOtpValid = await this.hashPassword.compare(UserOtp, otp)
-    if(!isOtpValid){
-      throw new AppError("Incorrect OTP", 400)
+    const decodedToken = this.jwtToken.verifyJwtToken(token) as DecodedToken;
+    const { otp, info } = decodedToken;
+    const { userId } = info;
+
+    const isOtpValid = await this.hashPassword.compare(UserOtp, otp);
+    if (!isOtpValid) {
+      throw new AppError("Incorrect OTP", 400);
     }
-    const hashedPassword = await this.hashPassword.hash(password)
+    const hashedPassword = await this.hashPassword.hash(password);
 
-    await this.iServiceProviderRepository.updatePassword(userId, hashedPassword) 
+    await this.iServiceProviderRepository.updatePassword(
+      userId,
+      hashedPassword
+    );
 
-    return 
-
+    return;
   }
 
   async updateBookingStatus(bookingId: string, status: string) {
     console.log("Service Call:", bookingId, status);
-  
-    const validStatuses = ['Scheduled', 'Completed', 'Cancelled'];
-    if (!validStatuses.includes(status)) {
-      throw new Error('Invalid status');
-    }
-  
-    return await this.iServiceProviderRepository.updateStatus(bookingId, status);
-  }
 
+    const validStatuses = ["Scheduled", "Completed", "Cancelled"];
+    if (!validStatuses.includes(status)) {
+      throw new Error("Invalid status");
+    }
+
+    return await this.iServiceProviderRepository.updateStatus(
+      bookingId,
+      status
+    );
+  }
 
   async editProfile(serviceProviderId: string, details: ServiceProvider) {
-    await this.iServiceProviderRepository.editProfile(serviceProviderId, details)
+    await this.iServiceProviderRepository.editProfile(
+      serviceProviderId,
+      details
+    );
   }
 
+  async editPassword(
+    serviceProviderId: string,
+    oldPassword: string,
+    newPassword: string
+  ) {
+    const serviceProvider =
+      await this.iServiceProviderRepository.findServiceProviderById(
+        serviceProviderId
+      );
+    if (!serviceProvider) throw new AppError("Interviewer not found ", 400);
+    const isPasswordMatch = await this.hashPassword.compare(
+      oldPassword,
+      serviceProvider?.password
+    );
+    if (!isPasswordMatch)
+      throw new AppError(
+        "Current password is incorrect. Please check and try again.",
+        400
+      );
 
-  async editPassword(serviceProviderId: string, oldPassword: string,  newPassword: string) {
-    
-    const serviceProvider = await this.iServiceProviderRepository.findServiceProviderById(serviceProviderId);
-    if(!serviceProvider) throw new AppError("Interviewer not found ", 400)
-    const isPasswordMatch = await this.hashPassword.compare(oldPassword, serviceProvider?.password)
-    if(!isPasswordMatch) throw new AppError("Current password is incorrect. Please check and try again.", 400)
-    
-    const hashedPassword = await this.hashPassword.hash(newPassword)
-    await this.iServiceProviderRepository.updatePassword(serviceProviderId, hashedPassword)
+    const hashedPassword = await this.hashPassword.hash(newPassword);
+    await this.iServiceProviderRepository.updatePassword(
+      serviceProviderId,
+      hashedPassword
+    );
   }
-  
 
-   async getProviderDashboardData (providerId: string) {
+  async getProviderDashboardData(providerId: string) {
     // Get total bookings, scheduled, completed, canceled, refunded, and revenue
-    const dashboardData = await this.iServiceProviderRepository.getDashboardStats(providerId);
+    const dashboardData =
+      await this.iServiceProviderRepository.getDashboardStats(providerId);
     return dashboardData;
-  };
+  }
+
+
+
+  async cancelBookingUseCase(bookingId: string, cancelReason: string) {
+    console.log('Inside cancelBookingUseCase:', bookingId, cancelReason); 
+
+    try {
+        console.log('Fetching booking by ID:', bookingId);
+        
+        const booking = await this.iServiceProviderRepository.findBookingById(bookingId);
+        if (!booking) {
+            console.log('Booking not found');
+            throw new Error("Booking not found");
+        }
+
+        console.log('Booking found:', booking);
+        
+        const cancelledBooking = await this.iServiceProviderRepository.cancelBooking(bookingId, cancelReason);
+        console.log('Booking cancelled:', cancelledBooking);
+        return cancelledBooking;
+    } catch (error) {
+        console.log('Error occurred in cancelBookingUseCase:', error);
+        throw error;
+    }
+}
+
 }
 
 export default ServiceProviderUseCase;

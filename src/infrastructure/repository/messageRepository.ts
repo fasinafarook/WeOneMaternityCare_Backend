@@ -1,4 +1,3 @@
-// src/repositories/messageRepository.ts
 import { IMessageRepository } from "../../interfaces/repositories/IMessageRepository";
 import Conversation from "../../infrastructure/database/converstationModel";
 import Message from "../../infrastructure/database/messageModel";
