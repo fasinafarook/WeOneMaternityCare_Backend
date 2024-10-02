@@ -20,7 +20,7 @@ const port = process.env.PORT || 5000;
 connectDB();
 
 app.use(cors({
-  origin: ["http://localhost:5173"], 
+  origin: 'https://weone-maternitycare.online', 
   methods: 'GET,HEAD,PUT,PATCH,POST,DELETE',
   credentials: true,
 }));
@@ -47,5 +47,5 @@ app.use("/message", messageRouter);
 app.use(errorMiddleware);
 
 server.listen(port, () => {
-  console.log(`Server is running at http://localhost:${port}`);
+  console.log(`Server is running at https://weone-maternitycare.online`);
 });
