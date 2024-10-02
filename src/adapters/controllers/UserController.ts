@@ -411,6 +411,7 @@ class UserController {
     }
   }
 
+  
   async forgotPassword(req: Request, res: Response, next: NextFunction) {
     try {
       const { email } = req.body;
