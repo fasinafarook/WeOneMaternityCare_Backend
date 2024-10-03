@@ -40,8 +40,8 @@ class StripePayment {
             quantity: 1,
           },
         ],
-        success_url: `http://localhost:5173/user/payment-success`,
-        cancel_url: `http://localhost:5173/user/payment-failed`,
+        success_url: `https://weone-maternitycare.online/api/user/payment-success`,
+        cancel_url: `https://weone-maternitycare.online/api/user/payment-failed`,
 
         metadata: {
         serviceProviderId,
