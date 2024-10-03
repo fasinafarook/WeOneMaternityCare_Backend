@@ -28,7 +28,7 @@ app.use(cors({
 }));
 
  app.use((req: Request, res: Response, next: NextFunction) => {
-    if (req.originalUrl === '/payment/webhook') {
+    if (req.originalUrl === '/api/payment/webhook') {
       // Use express.raw() to parse the raw body needed for Stripe webhooks
       express.raw({ type: 'application/json' })(req, res, next);
     } else {
