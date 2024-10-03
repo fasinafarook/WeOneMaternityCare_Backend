@@ -1,14 +1,13 @@
 import mongoose from "mongoose";
 import dotenv from "dotenv";
 
-// Load environment variables from .env file
 dotenv.config();
 
 const connectDB = async () => {
   try {
-    const mongoURI = process.env.MONGO_URI as string;
+    const mongoURI ='mongodb+srv://fasinafarook786:H2h4PNkFxpMZ2qtM@weonematernitycare.euv5s.mongodb.net/weonematernitycare';
     await mongoose.connect(mongoURI);
-    console.log("Database connected successfully");
+    console.log("Database connected successfully",mongoURI);
   } catch (error) {
     console.error("Database connection error:", error);
   }

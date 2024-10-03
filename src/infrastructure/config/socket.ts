@@ -6,9 +6,10 @@ const apps = express();
 const server = http.createServer(apps);
 const io = new Server(server, {
   cors: {
-    origin: ["http://localhost:5173"],
+    origin: 'https://weone-maternitycare.online',
     methods: ["GET", "POST"],
   },
+  path: '/ws/' 
 });
 
 export const getReceiverSocketId = (receiverId: string): string | undefined =>{

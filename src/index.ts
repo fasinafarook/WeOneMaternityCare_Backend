@@ -1,3 +1,5 @@
+
+
 import dotenv from 'dotenv';
 import connectDB from './infrastructure/config/MongoDB';
 import bodyParser from 'body-parser';
@@ -38,11 +40,11 @@ app.use(cors({
 app.use(cookieParser());
 app.use(bodyParser.json());
 
-app.use('/user', userRouter);
-app.use('/admin', adminRouter);
-app.use('/serviceProvider', serviceProviderRouter);
-app.use("/payment", paymentRouter);
-app.use("/message", messageRouter);
+app.use('/api/user', userRouter);
+app.use('/api/admin', adminRouter);
+app.use('/api/serviceProvider', serviceProviderRouter);
+app.use("/api/payment", paymentRouter);
+app.use("/api/message", messageRouter);
 
 app.use(errorMiddleware);
 
@@ -50,5 +52,5 @@ app.use(errorMiddleware);
 
 
 server.listen(port, () => {
-  console.log(`Server is running at https://weone-maternitycare.online`);
+  console.log(`Server is running on port ${port} at https://weone-maternitycare.online`);
 });
