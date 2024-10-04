@@ -15,7 +15,7 @@ const server = https.createServer(apps);
 const io = new Server(server, {
   cors: {
     origin: 'https://weone-maternitycare.online',
-    methods: ["GET", "POST"],
+    methods: ["GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS", "HEAD"],
   },
   path: '/ws/' 
 });
