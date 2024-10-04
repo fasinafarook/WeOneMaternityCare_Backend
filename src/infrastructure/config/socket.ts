@@ -5,11 +5,13 @@ import fs from 'fs';
 
 
 const apps = express();
-const serverOptions = {
-  key: fs.readFileSync('/etc/letsencrypt/live/weone-maternitycare.online/privkey.pem'),  // Path to your private key file
-  cert: fs.readFileSync('/etc/letsencrypt/live/weone-maternitycare.online/fullchain.pem'),  // Path to your SSL certificate file
-};
-const server = https.createServer(serverOptions,apps);
+
+// const serverOptions = {
+//   key: fs.readFileSync('/etc/letsencrypt/live/weone-maternitycare.online/privkey.pem'),  // Path to your private key file
+//   cert: fs.readFileSync('/etc/letsencrypt/live/weone-maternitycare.online/fullchain.pem'),  // Path to your SSL certificate file
+// };
+
+const server = https.createServer(apps);
 const io = new Server(server, {
   cors: {
     origin: 'https://weone-maternitycare.online',
