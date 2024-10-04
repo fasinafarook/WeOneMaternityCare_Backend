@@ -1,5 +1,5 @@
 import { Server } from 'socket.io';
-import https from 'https';
+import http from 'http';
 import express from 'express';
 import fs from 'fs';
 
@@ -11,7 +11,7 @@ const apps = express();
 //   cert: fs.readFileSync('/etc/letsencrypt/live/weone-maternitycare.online/fullchain.pem'),  // Path to your SSL certificate file
 // };
 
-const server = https.createServer(apps);
+const server = http.createServer(apps);
 const io = new Server(server, {
   cors: {
     origin: 'https://weone-maternitycare.online',
