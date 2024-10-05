@@ -17,6 +17,7 @@ const io = new Server(server, {
     origin: 'https://weone-maternitycare.online',
     methods: ["GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS", "HEAD"],
   },
+  transports: ['websocket'],
 });
 console.log('servrsss');
 
