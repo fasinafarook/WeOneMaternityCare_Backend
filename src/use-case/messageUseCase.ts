@@ -1,7 +1,6 @@
 import { IMessageRepository } from "../interfaces/repositories/IMessageRepository";
 import { MessageRepository } from "../infrastructure/repository/messageRepository";
 import { getReceiverSocketId, io } from "../infrastructure/config/socket";
-import { log } from "util";
 export class MessageUseCase {
   private messageRepository: IMessageRepository;
 
@@ -10,6 +9,8 @@ export class MessageUseCase {
   }
 
   async sendMessage(senderId: string, receiverId: string, message: string) {
+    console.log('senderId:',senderId,'receiverId:',receiverId);
+    
     let conversation = await this.messageRepository.findConversation(
       senderId,
       receiverId
@@ -30,7 +31,7 @@ export class MessageUseCase {
 
     conversation.messages.push(newMessage._id);
     await conversation.save();
-console.log('con');
+    console.log('con');
 
     const receiverSocketId = getReceiverSocketId(receiverId);
     console.log('receiverSocketId',receiverSocketId);
