@@ -22,7 +22,7 @@ const io = new Server(server, {
 console.log('servrsss');
 
 export const getReceiverSocketId = (receiverId: string): string | undefined =>{
-  console.log('servrsssssss');
+  console.log('servrsssssss',receiverId);
 
 return userSocketMap[receiverId]
 }
