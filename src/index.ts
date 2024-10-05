@@ -50,5 +50,5 @@ app.use(errorMiddleware);
 
 
 server.listen(port, () => {
-  console.log(`Server is running on port number ${port} at https://weone-maternitycare.online`);
+  console.log(`Server is running on port ${port} at https://weone-maternitycare.online`);
 });
