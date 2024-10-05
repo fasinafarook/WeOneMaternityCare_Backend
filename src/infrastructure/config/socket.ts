@@ -1,10 +1,13 @@
 import { Server } from 'socket.io';
 import http from 'http';
 import express from 'express';
-import fs from 'fs';
+// import fs from 'fs';
 
 
 const apps = express();
+
+console.log('servr');
+
 
 // const serverOptions = {
 //   key: fs.readFileSync('/etc/letsencrypt/live/weone-maternitycare.online/privkey.pem'),  // Path to your private key file
@@ -12,13 +15,16 @@ const apps = express();
 // };
 
 const server = http.createServer(apps);
+console.log('servrs');
+
 const io = new Server(server, {
   cors: {
     origin: 'https://weone-maternitycare.online',
     methods: ["GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS", "HEAD"],
   },
-  path: '/ws/' 
+  // path: '/ws/' 
 });
+console.log('servrsss');
 
 export const getReceiverSocketId = (receiverId: string): string | undefined =>{
 return userSocketMap[receiverId]

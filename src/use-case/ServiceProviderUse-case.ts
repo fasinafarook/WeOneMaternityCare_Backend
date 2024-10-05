@@ -261,69 +261,67 @@ class ServiceProviderUseCase {
   }
 
   async editSlot(slotId: string, updatedSlotData: any) {
-    const providerSlot = await this.iServiceProviderRepository.findProviderSlot(
-      slotId
-    );
-
+    const providerSlot = await this.iServiceProviderRepository.findProviderSlot(slotId);
+    console.log('providerSlot', providerSlot);
+  
     if (!providerSlot) {
       throw new AppError("Slot not found in any provider", 404);
     }
-
-    const slotIndex = providerSlot.slots.findIndex(
-      (s: any) => s._id.toString() === slotId
-    );
-
+  
+    const slotIndex = providerSlot.slots.findIndex((s: any) => s._id.toString() === slotId);
+  
     if (slotIndex === -1) {
       throw new AppError("Slot not found", 404);
     }
-
-    const newFrom = new Date(updatedSlotData.from);
-    const newTo = new Date(updatedSlotData.to);
+  
+    const updatedSlot = providerSlot.slots[slotIndex];
+  
+    // Only update date/time if provided in the update request
+    const newFrom = updatedSlotData.from ? new Date(updatedSlotData.from) : new Date(updatedSlot.schedule[0].from);
+    const newTo = updatedSlotData.to ? new Date(updatedSlotData.to) : new Date(updatedSlot.schedule[0].to);
     const slotDate = newFrom.toISOString().split("T")[0];
-
-    const isDuplicateTimeOnSameDay = providerSlot.slots.some(
-      (slot: any, index: number) => {
-        if (index !== slotIndex) {
-          return slot.schedule.some((schedule: any) => {
-            const existingFrom = new Date(schedule.from);
-            const existingTo = new Date(schedule.to);
-            const existingDate = existingFrom.toISOString().split("T")[0];
-
-            if (existingDate === slotDate) {
-              const isOverlapping =
-                (newFrom <= existingTo && newTo >= existingFrom) ||
-                (newFrom >= existingFrom && newFrom < existingTo) ||
-                (newTo > existingFrom && newTo <= existingTo) ||
-                (newFrom <= existingFrom && newTo >= existingTo);
-              return isOverlapping;
-            }
-
-            return false;
-          });
-        }
-        return false;
+  
+    // Duplication check to ensure no overlapping slots
+    const isDuplicateTimeOnSameDay = providerSlot.slots.some((slot: any, index: number) => {
+      if (index !== slotIndex) {
+        return slot.schedule.some((schedule: any) => {
+          const existingFrom = new Date(schedule.from);
+          const existingTo = new Date(schedule.to);
+          const existingDate = existingFrom.toISOString().split("T")[0];
+  
+          if (existingDate === slotDate) {
+            const isOverlapping =
+              (newFrom <= existingTo && newTo >= existingFrom) ||
+              (newFrom >= existingFrom && newFrom < existingTo) ||
+              (newTo > existingFrom && newTo <= existingTo) ||
+              (newFrom <= existingFrom && newTo >= existingTo);
+            return isOverlapping;
+          }
+  
+          return false;
+        });
       }
-    );
-
+      return false;
+    });
+  
     if (isDuplicateTimeOnSameDay) {
       throw new AppError("Slot time already exists on the same date", 400);
     }
-
-    const updatedSlot = providerSlot.slots[slotIndex];
+  
+    // Update slot data
     updatedSlot.schedule.forEach((schedule: any) => {
       schedule.from = updatedSlotData.from || schedule.from;
       schedule.to = updatedSlotData.to || schedule.to;
       schedule.price = updatedSlotData.price || schedule.price;
       schedule.services = updatedSlotData.services || schedule.services;
-      schedule.description =
-        updatedSlotData.description || schedule.description;
+      schedule.description = updatedSlotData.description || schedule.description;
       schedule.status = updatedSlotData.status || schedule.status;
     });
-
+  
     await this.iServiceProviderRepository.saveProviderSlots(providerSlot);
     return updatedSlot;
   }
-
+  
   async passwordReset(email: string) {
     try {
       const candidate = await this.iServiceProviderRepository.findByEmail(

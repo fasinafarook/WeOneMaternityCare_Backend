@@ -440,7 +440,11 @@ class ServiceProviderController {
   async editSlot(req: Request, res: Response, next: NextFunction) {
     try {
       const { slotId } = req.params;
+      console.log('slotId',slotId);
+      
       const updatedSlotData = req.body;
+      console.log('updatedSlotData',updatedSlotData);
+
       const result = await this.serviceProviderCase.editSlot(
         slotId,
         updatedSlotData

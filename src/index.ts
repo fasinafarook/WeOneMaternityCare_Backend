@@ -1,5 +1,3 @@
-
-
 import dotenv from 'dotenv';
 import connectDB from './infrastructure/config/MongoDB';
 import bodyParser from 'body-parser';
