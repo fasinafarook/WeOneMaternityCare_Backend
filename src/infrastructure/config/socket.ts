@@ -9,10 +9,6 @@ const apps = express();
 console.log('servr');
 
 
-// const serverOptions = {
-//   key: fs.readFileSync('/etc/letsencrypt/live/weone-maternitycare.online/privkey.pem'),  // Path to your private key file
-//   cert: fs.readFileSync('/etc/letsencrypt/live/weone-maternitycare.online/fullchain.pem'),  // Path to your SSL certificate file
-// };
 
 const server = http.createServer(apps);
 console.log('servrs');
@@ -22,11 +18,12 @@ const io = new Server(server, {
     origin: 'https://weone-maternitycare.online',
     methods: ["GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS", "HEAD"],
   },
-  // path: '/ws/' 
 });
 console.log('servrsss');
 
 export const getReceiverSocketId = (receiverId: string): string | undefined =>{
+  console.log('servrsssssss');
+
 return userSocketMap[receiverId]
 }
 const userSocketMap: Record<string, string> = {};
