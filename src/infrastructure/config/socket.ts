@@ -1,7 +1,6 @@
 import { Server } from 'socket.io';
 import http from 'http';
 import express from 'express';
-// import fs from 'fs';
 
 
 const apps = express();
@@ -32,6 +31,8 @@ io.on('connection', (socket) => {
   console.log("A user connected", socket.id);
 
   const userId = socket.handshake.query.userId as string;
+  console.log('userId',userId);
+  
 
   if (userId) {
     userSocketMap[userId] = socket.id;
