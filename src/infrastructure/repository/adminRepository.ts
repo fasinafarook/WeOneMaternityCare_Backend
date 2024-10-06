@@ -129,8 +129,17 @@ class AdminRepository implements IAdminRepository {
     categoryName: string,
     subCategories: string[]
   ): Promise<boolean> {
+
+    const trimmedCategoryName = categoryName.trim().replace(/\s+/g, ' ');
+
+  // Check if category with the same name (after trimming) already exists
+  const existingCategory = await CategoryModel.findOne({ categoryName: trimmedCategoryName });
+  if (existingCategory) {
+    throw new AppError("Category name already exists", 400);
+  }
+
     const newCategory = new CategoryModel({
-      categoryName: categoryName,
+      categoryName: trimmedCategoryName,
       subCategories: subCategories,
     });
     const savedCategory = await newCategory.save();
@@ -156,6 +165,16 @@ class AdminRepository implements IAdminRepository {
   }
 
   async addBlog(blogData: Partial<IBlog>): Promise<IBlog> {
+    if (blogData.title) {
+      blogData.title = blogData.title.trim().replace(/\s+/g, ' ');
+    }
+  
+    // Check if a blog with the same name already exists
+    const existingBlog = await BlogModel.findOne({ title: blogData.title });
+    if (existingBlog) {
+      throw new AppError("Blog with the same title already exists", 400);
+    }
+  
     const blog = new BlogModel(blogData);
     console.log("blog", blog);
 
@@ -206,9 +225,20 @@ class AdminRepository implements IAdminRepository {
   }
 
   async addWebinar(webinar: IWebinar): Promise<IWebinar> {
-    const newWebinar = new WebinarModel(webinar);
-    console.log("hii:", newWebinar);
+    const normalizedWebinarName = webinar.title.trim().replace(/\s+/g, ' ');
 
+    // Check if webinar with the same (normalized) name already exists
+    const existingWebinar = await WebinarModel.findOne({ webinarName: normalizedWebinarName });
+    if (existingWebinar) {
+      throw new AppError("Webinar name already exists", 400);
+    }
+  
+
+    const newWebinar = new WebinarModel({
+      ...webinar,
+      webinarName: normalizedWebinarName,  // Use the normalized name
+    });
+  
     return await newWebinar.save();
   }
 
