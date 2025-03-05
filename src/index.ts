@@ -20,7 +20,7 @@ const port = process.env.PORT || 5000;
 connectDB();
 
 app.use(cors({
-  origin: 'https://weone-maternitycare.online', 
+  origin: 'https://we-one-maternity-care.vercel.app', 
   methods: 'GET,HEAD,PUT,PATCH,POST,DELETE',
   credentials: true,
 }));
