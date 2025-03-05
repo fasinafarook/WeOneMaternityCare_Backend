@@ -40,8 +40,8 @@ class StripePayment {
             quantity: 1,
           },
         ],
-        success_url: `https://weone-maternitycare.online/user/payment-success`,
-        cancel_url: `https://weone-maternitycare.online/user/payment-failed`,
+        success_url: `https://we-one-maternity-care.vercel.app/user/payment-success`,
+        cancel_url: `https://we-one-maternity-care.vercel.app/user/payment-failed`,
 
         metadata: {
         serviceProviderId,
